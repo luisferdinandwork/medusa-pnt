@@ -1,0 +1,42 @@
+import { getStoreConfig } from "@lib/data/store-config"
+import LocalizedClientLink from "@modules/common/components/localized-client-link"
+import ChevronDown from "@modules/common/icons/chevron-down"
+
+export default async function CheckoutLayout({
+  children,
+}: {
+  children: React.ReactNode
+}) {
+  const storeConfig = await getStoreConfig()
+
+  return (
+    <div className="w-full bg-paper relative small:min-h-screen">
+      <div className="h-16 bg-white border-b border-paper-200">
+        <nav className="flex h-full items-center content-container justify-between">
+          <LocalizedClientLink
+            href="/cart"
+            className="text-small-semi text-ink flex items-center gap-x-2 uppercase flex-1 basis-0"
+            data-testid="back-to-cart-link"
+          >
+            <ChevronDown className="rotate-90" size={16} />
+            <span className="mt-px hidden small:block txt-compact-plus text-ink-500 hover:text-red-500">
+              Kembali ke tas belanja
+            </span>
+            <span className="mt-px block small:hidden txt-compact-plus text-ink-500 hover:text-red-500">
+              Kembali
+            </span>
+          </LocalizedClientLink>
+          <LocalizedClientLink
+            href="/"
+            className="font-display text-xl uppercase hover:text-red-500"
+            data-testid="store-link"
+          >
+            {storeConfig.shortName}
+          </LocalizedClientLink>
+          <div className="flex-1 basis-0" />
+        </nav>
+      </div>
+      <div className="relative" data-testid="checkout-container">{children}</div>
+    </div>
+  )
+}

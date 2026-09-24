@@ -1,0 +1,32 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "backend",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": [
+        "run",
+        "backend:dev"
+      ],
+      "port": 9000
+    },
+    {
+      "name": "storefront",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": [
+        "run",
+        "storefront:dev"
+      ],
+      "port": 8000
+    },
+    {
+      "name": "storefront-b2b",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": [
+        "run",
+        "storefront-b2b:dev"
+      ],
+      "port": 8002
+    }
+  ]
+}
