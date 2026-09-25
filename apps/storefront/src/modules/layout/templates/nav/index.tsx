@@ -48,6 +48,22 @@ export default async function Nav() {
                   </LocalizedClientLink>
                 </li>
               ))}
+              <li>
+                <LocalizedClientLink
+                  href="/stories"
+                  className="hover:text-red-500 transition-colors"
+                >
+                  Cerita
+                </LocalizedClientLink>
+              </li>
+              <li>
+                <LocalizedClientLink
+                  href="/blog"
+                  className="hover:text-red-500 transition-colors"
+                >
+                  Jurnal
+                </LocalizedClientLink>
+              </li>
             </ul>
           </div>
 

@@ -15,6 +15,8 @@ import { Locale } from "@lib/data/locales"
 const SideMenuItems = {
   Beranda: "/",
   Belanja: "/store",
+  Cerita: "/stories",
+  Jurnal: "/blog",
   Akun: "/account",
   Tas: "/cart",
 }

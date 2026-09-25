@@ -98,6 +98,7 @@ cd apps/backend
 <pm> run backend:seed                        # from root; seeds initial data
 <pm> run seed:b2b                            # in apps/backend; adds the SPECS B2B sales channel + publishable key (idempotent, prints the key)
 <pm> run seed:storefronts                    # in apps/backend; creates the Storefront records for the 3 stores (idempotent)
+<pm> run seed:content                        # in apps/backend; demo blog articles + product stories (idempotent)
 ```
 
 ## Storefronts (multi-store)
@@ -108,6 +109,18 @@ One Medusa backend serves several storefronts. Each storefront is a **sales chan
 - Branding and homepage copy (name, tagline, announcement bar, hero) live in the `storefront` custom module (`apps/backend/src/modules/storefront`), linked to the sales channel, and are edited in the admin under **Storefronts** (`src/admin/routes/storefronts`). Admin API: `/admin/storefronts`; workflows: `create-storefront`, `update-storefront`.
 - A storefront reads its own record from `GET /store/storefront`, resolved from the publishable key it already sends (cached ~60 s). The static presets in `apps/storefront/src/lib/store-config.ts` and the fallback in `apps/storefront-b2b/src/lib/store-config.ts` are used only if the record is missing or the backend is down. Never hardcode store copy in components; add a field to the module instead (new migration, do not edit an existing one).
 - `apps/storefront` = SPECS Teamsport / SPECS Run (one codebase, chosen by `NEXT_PUBLIC_STORE_KEY` + its publishable key). `apps/storefront-b2b` = SPECS B2B, login required (see its `AGENTS.md`).
+
+## Content (blog & product stories)
+
+Editorial content lives in the `content` custom module (`apps/backend/src/modules/content`) and is edited in the admin under **Blog & Artikel** and **Cerita Produk**.
+
+- `Article` = a blog post. Besides the body it carries the SEO fields a crawler reads (`seo_*`, `canonical_url`, `noindex`) and the GEO fields an answer engine quotes (`answer_summary`, `key_takeaways`, `faqs`, `sources`, `geo_locale`, `geo_target_area`). The storefront renders both the page and its JSON-LD from one record.
+- `ProductStory` = one story per product silo (a family such as "Sepatu Bola FG"). `product_handles` decides which product pages show it, so a story is the hub page that ties a silo together.
+- Both have `storefront_key`: a storefront key scopes the record to one shop front, `null` shows it on all of them. Store routes resolve the key from the publishable API key (`src/api/utils/storefront-scope.ts`) and only ever return `status = "published"`.
+- Admin API: `/admin/articles`, `/admin/product-stories` (GET list with `q`/`status`/`storefront_key`/`limit`/`offset`, POST create, and `:id` GET/POST/DELETE). Store API: `/store/articles`, `/store/articles/:handle`, `/store/product-stories`, `/store/product-stories/:handle`.
+- Workflows: `create|update|delete-article`, `create|update|delete-product-story`. Deletes are soft deletes so the compensation can restore them.
+- Storefront pages: `/blog`, `/blog/[handle]`, `/stories`, `/stories/[handle]`, plus the story teaser on product pages and the journal strip on the homepage. Article and story bodies are Markdown, rendered by `src/lib/util/markdown.tsx` into React elements (never raw HTML). Structured data is built in `src/lib/util/json-ld.ts`.
+- `related_product_handles` / `product_handles` reference products **by handle**, not id, so content survives a reseed. A handle that no longer exists is skipped silently.
 
 ## Medusa Skills & MCP Server
 

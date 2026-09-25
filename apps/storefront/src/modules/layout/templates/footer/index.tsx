@@ -52,7 +52,7 @@ export default async function Footer() {
               </button>
             </form>
           </div>
-          <div className="text-small-regular gap-10 md:gap-x-16 grid grid-cols-2 sm:grid-cols-3">
+          <div className="text-small-regular gap-10 md:gap-x-16 grid grid-cols-2 sm:grid-cols-4">
             {productCategories && productCategories?.length > 0 && (
               <div className="flex flex-col gap-y-2">
                 <span className="txt-small-plus text-white uppercase tracking-wide text-xs">
@@ -137,6 +137,29 @@ export default async function Footer() {
                 </ul>
               </div>
             )}
+            <div className="flex flex-col gap-y-2">
+              <span className="txt-small-plus text-white uppercase tracking-wide text-xs">
+                Panduan
+              </span>
+              <ul className="grid grid-cols-1 gap-y-2 text-white/60 txt-small">
+                <li>
+                  <LocalizedClientLink
+                    href="/blog"
+                    className="hover:text-white"
+                  >
+                    Jurnal
+                  </LocalizedClientLink>
+                </li>
+                <li>
+                  <LocalizedClientLink
+                    href="/stories"
+                    className="hover:text-white"
+                  >
+                    Cerita produk
+                  </LocalizedClientLink>
+                </li>
+              </ul>
+            </div>
             <div className="flex flex-col gap-y-2">
               <span className="txt-small-plus text-white uppercase tracking-wide text-xs">
                 Bantuan

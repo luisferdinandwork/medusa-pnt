@@ -17,5 +17,8 @@ module.exports = defineConfig({
     {
       resolve: "./src/modules/storefront",
     },
+    {
+      resolve: "./src/modules/content",
+    },
   ],
 })

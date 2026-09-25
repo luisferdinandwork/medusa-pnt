@@ -4,6 +4,7 @@ import CategoryTiles from "@modules/home/components/category-tiles"
 import EditorialSection from "@modules/home/components/editorial-section"
 import GuideTeaser from "@modules/home/components/guide-teaser"
 import Hero from "@modules/home/components/hero"
+import JournalStrip from "@modules/home/components/journal-strip"
 import NewArrivals from "@modules/home/components/new-arrivals"
 import { getRegion } from "@lib/data/regions"
 import { getStoreConfig } from "@lib/data/store-config"
@@ -37,6 +38,7 @@ export default async function Home(props: {
       <NewArrivals region={region} />
       <EditorialSection />
       <GuideTeaser />
+      <JournalStrip />
     </>
   )
 }

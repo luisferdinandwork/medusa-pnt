@@ -25,7 +25,7 @@ export default async function EditorialSection() {
           {editorial.body && (
             <Text className="text-white/60 max-w-md">{editorial.body}</Text>
           )}
-          <LocalizedClientLink href="/store" className="w-fit">
+          <LocalizedClientLink href="/blog" className="w-fit">
             <Button
               variant="secondary"
               className="bg-transparent border-white text-black hover:bg-white/10 hover:text-white"

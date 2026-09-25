@@ -1,5 +1,6 @@
 import React, { Suspense } from "react"
 
+import ProductStoryTeaser from "@modules/blog/components/product-story-teaser"
 import ImageGallery from "@modules/products/components/image-gallery"
 import ProductActions from "@modules/products/components/product-actions"
 import ProductOnboardingCta from "@modules/products/components/product-onboarding-cta"
@@ -57,6 +58,9 @@ const ProductTemplate: React.FC<ProductTemplateProps> = ({
           </Suspense>
         </div>
       </div>
+      <Suspense fallback={null}>
+        <ProductStoryTeaser productHandle={product.handle} />
+      </Suspense>
       <div
         className="content-container my-16 small:my-32"
         data-testid="related-products-container"
