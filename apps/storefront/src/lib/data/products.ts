@@ -6,6 +6,10 @@ import { sortProducts } from "@lib/util/sort-products"
 import { HttpTypes } from "@medusajs/types"
 import { SortOptions } from "@modules/store/components/refinement-list/sort-products"
 import { getAuthHeaders, getCacheOptions } from "./cookies"
+
+// Product data (images, videos, descriptions) edited in the admin shows up
+// within a minute; without a revalidate window the cached copy never expires.
+const productFetch = { revalidate: 60 } as const
 import { getRegion, retrieveRegion } from "./regions"
 
 type ProductListQueryParams = (HttpTypes.FindParams &
@@ -58,6 +62,7 @@ export const listProducts = async ({
 
   const next = {
     ...(await getCacheOptions("products")),
+    ...productFetch,
   }
 
   return sdk.client
@@ -185,7 +190,11 @@ export const listProductsWithSort = async ({
   }
 }
 
-export type ProductFilterOptionValue = { id: string; label: string }
+export type ProductFilterOptionValue = {
+  id: string
+  label: string
+  rank?: number | null
+}
 export type ProductFilterOptionGroup = {
   id: string
   title: string
@@ -202,11 +211,12 @@ export type ProductFilters = {
  * the filter sidebar never shows a filter that would produce zero results.
  */
 export const getProductFilters = async ({
-  categoryId,
+  categoryIds,
   collectionId,
   countryCode,
 }: {
-  categoryId?: string
+  /** A category and its subcategories (see categoryBranchIds). */
+  categoryIds?: string[]
   collectionId?: string
   countryCode: string
 }): Promise<ProductFilters> => {
@@ -217,7 +227,7 @@ export const getProductFilters = async ({
   }
 
   const headers = { ...(await getAuthHeaders()) }
-  const next = { ...(await getCacheOptions("products")) }
+  const next = { ...(await getCacheOptions("products")), ...productFetch }
 
   const query: Record<string, unknown> = {
     limit: 100,
@@ -225,8 +235,8 @@ export const getProductFilters = async ({
     fields: "id,title,*options,*options.values,*variants.calculated_price",
   }
 
-  if (categoryId) {
-    query.category_id = [categoryId]
+  if (categoryIds?.length) {
+    query.category_id = categoryIds
   }
 
   if (collectionId) {
@@ -262,7 +272,7 @@ export const getProductFilters = async ({
 
       for (const value of option.values || []) {
         if (value.id && value.value && !seen.has(value.id)) {
-          group.values.push({ id: value.id, label: value.value })
+          group.values.push({ id: value.id, label: value.value, rank: value.rank })
           seen.add(value.id)
         }
       }
@@ -280,6 +290,9 @@ export const getProductFilters = async ({
 
   const sortValues = (values: ProductFilterOptionValue[]) =>
     [...values].sort((a, b) => {
+      if (a.rank != null && b.rank != null && a.rank !== b.rank) {
+        return a.rank - b.rank
+      }
       const aNum = Number(a.label)
       const bNum = Number(b.label)
 
@@ -307,10 +320,11 @@ export const getProductFilters = async ({
  * can include items that aren't actually purchasable in this store.
  */
 export const getCategoryProductCounts = async ({
-  categoryIds,
+  branches,
   countryCode,
 }: {
-  categoryIds: string[]
+  /** Per category, its id and the ids of its whole branch. */
+  branches: { id: string; ids: string[] }[]
   countryCode: string
 }): Promise<Record<string, number>> => {
   const region = await getRegion(countryCode)
@@ -320,15 +334,15 @@ export const getCategoryProductCounts = async ({
   }
 
   const headers = { ...(await getAuthHeaders()) }
-  const next = { ...(await getCacheOptions("products")) }
+  const next = { ...(await getCacheOptions("products")), ...productFetch }
 
   const entries = await Promise.all(
-    categoryIds.map(async (categoryId) => {
+    branches.map(async ({ id: categoryId, ids }) => {
       const { count } = await sdk.client.fetch<{ count: number }>(
         "/store/products",
         {
           method: "GET",
-          query: { limit: 1, category_id: [categoryId], region_id: region.id },
+          query: { limit: 1, category_id: ids, region_id: region.id },
           headers,
           next,
           cache: "force-cache",

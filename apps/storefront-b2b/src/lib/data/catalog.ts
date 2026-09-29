@@ -16,6 +16,24 @@ export async function getRegion(): Promise<HttpTypes.StoreRegion> {
 const PRODUCT_FIELDS =
   "*variants.calculated_price,+variants.inventory_quantity,*variants.options,+thumbnail,*images"
 
+// The category and every subcategory below it: products are assigned to the
+// deepest category (Footwear > Sepatu Bola), and the filter uses main ones.
+async function categoryBranch(categoryId: string) {
+  const { product_categories } = await sdk.store.category.list(
+    { limit: 500, fields: "id,parent_category_id" },
+    await getAuthHeaders()
+  )
+  const ids = [categoryId]
+  for (let i = 0; i < ids.length; i++) {
+    for (const category of product_categories) {
+      if (category.parent_category_id === ids[i] && !ids.includes(category.id)) {
+        ids.push(category.id)
+      }
+    }
+  }
+  return ids
+}
+
 export async function listProducts(params: {
   q?: string
   categoryId?: string
@@ -23,6 +41,7 @@ export async function listProducts(params: {
 }) {
   const region = await getRegion()
   const page = Math.max(1, params.page ?? 1)
+  const categoryIds = params.categoryId ? await categoryBranch(params.categoryId) : null
   const { products, count } = await sdk.store.product.list(
     {
       limit: PAGE_SIZE,
@@ -30,7 +49,7 @@ export async function listProducts(params: {
       region_id: region.id,
       fields: PRODUCT_FIELDS,
       ...(params.q ? { q: params.q } : {}),
-      ...(params.categoryId ? { category_id: [params.categoryId] } : {}),
+      ...(categoryIds ? { category_id: categoryIds } : {}),
     },
     await getAuthHeaders()
   )

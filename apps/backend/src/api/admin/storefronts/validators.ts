@@ -27,6 +27,8 @@ const fields = {
   editorial_heading: optionalText,
   editorial_body: z.string().trim().max(1000).nullish(),
   editorial_cta_label: optionalText,
+  editorial_image_url: z.string().trim().max(2000).nullish(),
+  editorial_image_alt: optionalText,
   guide_cards: z.array(guideCard).max(4).nullish(),
 }
 

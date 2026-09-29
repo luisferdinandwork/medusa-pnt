@@ -27,7 +27,7 @@ export const GET = async (req: MedusaStoreRequest, res: MedusaResponse) => {
     )
   }
 
-  // Same category first, newest otherwise - keeps the silo linked together.
+  // Same category first, newest otherwise - keeps related guides linked together.
   const [related] = await service.listAndCountArticles(
     {
       status: "published",

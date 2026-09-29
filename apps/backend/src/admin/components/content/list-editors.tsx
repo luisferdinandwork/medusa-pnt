@@ -7,6 +7,7 @@ import {
 } from "@medusajs/icons"
 import { Button, IconButton, Input, Text, Textarea } from "@medusajs/ui"
 import { useState } from "react"
+import { ImageUpload } from "./image-upload"
 
 const move = <T,>(items: T[], from: number, to: number) => {
   if (to < 0 || to >= items.length) {
@@ -162,9 +163,14 @@ type FieldSpec<T> = {
   key: keyof T & string
   label: string
   placeholder?: string
-  /** "input" is a single line, "textarea" a multi-line body. */
-  type?: "input" | "textarea"
+  /**
+   * "input" is a single line, "textarea" a multi-line body, "image" an upload
+   * that stores the file URL.
+   */
+  type?: "input" | "textarea" | "image"
   rows?: number
+  /** For "image": the field holding the alt text, used for the preview. */
+  altKey?: keyof T & string
 }
 
 /**
@@ -247,7 +253,13 @@ export const RecordList = <T extends Record<string, string>>({
               <Text size="xsmall" weight="plus" className="text-ui-fg-subtle">
                 {field.label}
               </Text>
-              {field.type === "textarea" ? (
+              {field.type === "image" ? (
+                <ImageUpload
+                  value={entry[field.key] ?? ""}
+                  onChange={update}
+                  alt={field.altKey ? entry[field.altKey] : undefined}
+                />
+              ) : field.type === "textarea" ? (
                 <Textarea
                   rows={field.rows ?? 3}
                   value={entry[field.key] ?? ""}

@@ -20,7 +20,13 @@ const OptionSelect: React.FC<OptionSelectProps> = ({
   "data-testid": dataTestId,
   disabled,
 }) => {
-  const filteredOptions = (option.values ?? []).map((v) => v.value)
+  // Admin rank first (S, M, L, XL), then the API order.
+  const filteredOptions = [...(option.values ?? [])]
+    .sort(
+      (a, b) =>
+        (a.rank ?? Number.MAX_SAFE_INTEGER) - (b.rank ?? Number.MAX_SAFE_INTEGER)
+    )
+    .map((v) => v.value)
   const isColorOption = filteredOptions.some((v) => !!getColorSwatch(v))
 
   return (

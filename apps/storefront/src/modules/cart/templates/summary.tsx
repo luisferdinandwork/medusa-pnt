@@ -9,13 +9,17 @@ import LocalizedClientLink from "@modules/common/components/localized-client-lin
 import { HttpTypes, StoreCartShippingOption } from "@medusajs/types"
 import { getCheckoutStep } from "@lib/util/get-checkout-step"
 import FreeShippingPriceNudge from "@modules/shipping/components/free-shipping-price-nudge"
+import ShipFromSummary from "@modules/cart/components/ship-from-summary"
+import FulfillmentChoice from "@modules/cart/components/fulfillment-choice"
+import type { OmnichannelData } from "@lib/util/omnichannel"
 
 type SummaryProps = {
   cart: HttpTypes.StoreCart
   shippingOptions?: StoreCartShippingOption[]
+  omnichannel?: OmnichannelData
 }
 
-const Summary = ({ cart, shippingOptions }: SummaryProps) => {
+const Summary = ({ cart, shippingOptions, omnichannel }: SummaryProps) => {
   const step = getCheckoutStep(cart)
 
   return (
@@ -28,6 +32,8 @@ const Summary = ({ cart, shippingOptions }: SummaryProps) => {
           shippingOptions={shippingOptions}
         />
       )}
+      <FulfillmentChoice cart={cart} omnichannel={omnichannel} />
+      <ShipFromSummary cart={cart} omnichannel={omnichannel} />
       <DiscountCode cart={cart} />
       <Divider />
       <CartTotals totals={cart} />

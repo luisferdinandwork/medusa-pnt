@@ -29,6 +29,9 @@ export type StoreConfig = {
     heading: string
     body: string
     ctaLabel: string
+    /** Photo next to the story; empty shows a plain panel. */
+    imageUrl: string
+    imageAlt: string
   }
   /** Homepage buying-guide cards. An empty list hides the section. */
   guideCards: GuideCard[]
@@ -55,6 +58,8 @@ const DEFAULT_EDITORIAL: StoreConfig["editorial"] = {
   heading: "Dari lapangan kampung,\nke rumput stadion.",
   body: "Rizky bermain tanpa sepatu sampai umur dua belas. Musim ini ia mencetak sembilan gol di liga provinsi - dengan Barricada yang sama yang dipakai anak-anak di lapangan belakang rumahnya.",
   ctaLabel: "Baca ceritanya",
+  imageUrl: "",
+  imageAlt: "",
 }
 
 const DEFAULT_GUIDE_CARDS: GuideCard[] = [

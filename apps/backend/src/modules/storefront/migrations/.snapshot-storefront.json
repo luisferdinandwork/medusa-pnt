@@ -310,6 +310,38 @@
           "enumItems": [],
           "mappedType": "text"
         },
+        "editorial_image_url": {
+          "name": "editorial_image_url",
+          "type": "text",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": true,
+          "unique": false,
+          "length": null,
+          "precision": null,
+          "scale": null,
+          "default": null,
+          "comment": null,
+          "enumItems": [],
+          "mappedType": "text"
+        },
+        "editorial_image_alt": {
+          "name": "editorial_image_alt",
+          "type": "text",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": true,
+          "unique": false,
+          "length": null,
+          "precision": null,
+          "scale": null,
+          "default": null,
+          "comment": null,
+          "enumItems": [],
+          "mappedType": "text"
+        },
         "guide_cards": {
           "name": "guide_cards",
           "type": "jsonb",

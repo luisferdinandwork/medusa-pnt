@@ -34,28 +34,44 @@ export default async function EditorialSection() {
             </Button>
           </LocalizedClientLink>
         </div>
-        <div className="relative aspect-[4/3] rounded-large border border-white/10 overflow-hidden bg-gradient-to-br from-white/[0.06] to-transparent">
-          <div
-            aria-hidden
-            className="absolute inset-0 opacity-[0.06]"
-            style={{
-              backgroundImage:
-                "repeating-linear-gradient(115deg, #ffffff 0px, #ffffff 2px, transparent 2px, transparent 26px)",
-            }}
-          />
-          <span
-            aria-hidden
-            className="font-display text-[13rem] leading-none text-white/[0.06] select-none absolute -bottom-6 -right-4"
+        {editorial.imageUrl ? (
+          <LocalizedClientLink
+            href="/blog"
+            className="group relative block aspect-[4/3] overflow-hidden rounded-large"
+            aria-label={editorial.ctaLabel || "Baca ceritanya"}
           >
-            9
-          </span>
-          <div className="absolute left-6 bottom-6 flex items-center gap-x-2">
-            <span className="h-1.5 w-1.5 rounded-full bg-red-400" />
-            <span className="text-[10px] font-semibold uppercase tracking-widest text-white/60">
-              Musim 2026
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={editorial.imageUrl}
+              alt={editorial.imageAlt}
+              loading="lazy"
+              className="absolute inset-0 h-full w-full object-cover transition-transform duration-700 ease-out group-hover:scale-[1.03]"
+            />
+          </LocalizedClientLink>
+        ) : (
+          <div className="relative aspect-[4/3] rounded-large border border-white/10 overflow-hidden bg-gradient-to-br from-white/[0.06] to-transparent">
+            <div
+              aria-hidden
+              className="absolute inset-0 opacity-[0.06]"
+              style={{
+                backgroundImage:
+                  "repeating-linear-gradient(115deg, #ffffff 0px, #ffffff 2px, transparent 2px, transparent 26px)",
+              }}
+            />
+            <span
+              aria-hidden
+              className="font-display text-[13rem] leading-none text-white/[0.06] select-none absolute -bottom-6 -right-4"
+            >
+              9
             </span>
+            <div className="absolute left-6 bottom-6 flex items-center gap-x-2">
+              <span className="h-1.5 w-1.5 rounded-full bg-red-400" />
+              <span className="text-[10px] font-semibold uppercase tracking-widest text-white/60">
+                Musim 2026
+              </span>
+            </div>
           </div>
-        </div>
+        )}
       </div>
     </div>
   )

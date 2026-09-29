@@ -9,7 +9,7 @@ export default function StoryCard({ story }: { story: ProductStory }) {
     >
       <div className="flex flex-col gap-y-3">
         <span className="text-xs font-semibold uppercase tracking-widest text-red-500">
-          {story.silo}
+          {story.product_name}
         </span>
         <h3 className="font-display uppercase text-2xl leading-tight group-hover:text-red-500 transition-colors">
           {story.title}

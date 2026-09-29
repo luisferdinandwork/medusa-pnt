@@ -4,6 +4,7 @@ import { listProducts } from "@lib/data/products"
 import { getRegion, listRegions } from "@lib/data/regions"
 import { getStoreConfig } from "@lib/data/store-config"
 import ProductTemplate from "@modules/products/templates"
+import type { ProductVideo } from "@modules/products/components/image-gallery"
 import { HttpTypes } from "@medusajs/types"
 
 type Props = {
@@ -101,6 +102,17 @@ export async function generateMetadata(props: Props): Promise<Metadata> {
   }
 }
 
+// Videos uploaded in the admin's "Videos" card, stored on the product.
+const productVideos = (product: HttpTypes.StoreProduct): ProductVideo[] => {
+  const value = (product.metadata as Record<string, unknown> | null)?.videos
+  return Array.isArray(value)
+    ? value.filter(
+        (entry): entry is ProductVideo =>
+          !!entry && typeof entry === "object" && typeof (entry as ProductVideo).url === "string"
+      )
+    : []
+}
+
 export default async function ProductPage(props: Props) {
   const params = await props.params
   const region = await getRegion(params.countryCode)
@@ -129,6 +141,7 @@ export default async function ProductPage(props: Props) {
       region={region}
       countryCode={params.countryCode}
       images={images ?? []}
+      videos={productVideos(pricedProduct)}
     />
   )
 }

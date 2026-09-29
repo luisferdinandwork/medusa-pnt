@@ -44,7 +44,8 @@ export const retrieveCustomer =
   async (): Promise<HttpTypes.StoreCustomer | null> => {
     const authHeaders = await getAuthHeaders()
 
-    if (!authHeaders) return null
+    // No token, or an expired one: signed out.
+    if (!("authorization" in authHeaders)) return null
 
     const headers = {
       ...authHeaders,

@@ -1,6 +1,21 @@
 import "server-only"
 import { cookies as nextCookies } from "next/headers"
 
+// Medusa's customer tokens expire after a day (jwtExpiresIn) while the cookie
+// lives for a week. An expired token is treated as "signed out": sending it
+// would get every account call rejected, while cached responses (such as the
+// customer's profile) would still make the shopper look signed in.
+const isExpired = (token: string) => {
+  try {
+    const payload = JSON.parse(
+      Buffer.from(token.split(".")[1] ?? "", "base64url").toString("utf8")
+    ) as { exp?: number }
+    return typeof payload.exp === "number" && payload.exp * 1000 <= Date.now()
+  } catch {
+    return false
+  }
+}
+
 export const getAuthHeaders = async (): Promise<
   { authorization: string } | Record<string, never>
 > => {
@@ -8,7 +23,7 @@ export const getAuthHeaders = async (): Promise<
     const cookies = await nextCookies()
     const token = cookies.get("_medusa_jwt")?.value
 
-    if (!token) {
+    if (!token || isExpired(token)) {
       return {}
     }
 

@@ -20,7 +20,7 @@ export const GET = async (
 
   const [product_stories, count] = await service.listAndCountProductStories(
     {
-      ...searchFilter(q, ["title", "handle", "silo", "excerpt"]),
+      ...searchFilter(q, ["title", "handle", "product_name", "excerpt"]),
       ...(status ? { status } : {}),
       ...(storefront_key ? { storefront_key } : {}),
     },

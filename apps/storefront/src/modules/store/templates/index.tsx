@@ -2,6 +2,7 @@ import { Suspense } from "react"
 
 import { listCategories } from "@lib/data/categories"
 import { getCategoryProductCounts, getProductFilters } from "@lib/data/products"
+import { buildCategoryMenu, categoryBranchIds } from "@lib/util/category-tree"
 import { OptionValueIds } from "@lib/util/product-option-filters"
 import SkeletonProductGrid from "@modules/skeletons/templates/skeleton-product-grid"
 import MobileFilterBar from "@modules/store/components/refinement-list/mobile-filter-bar"
@@ -35,20 +36,22 @@ const StoreTemplate = async ({
     getProductFilters({ countryCode }),
   ])
 
-  const topLevelCategories = (allCategories || []).filter(
-    (c) => !c.parent_category
-  )
+  const menu = buildCategoryMenu(allCategories || [])
 
   const categoryCounts = await getCategoryProductCounts({
-    categoryIds: topLevelCategories.map((c) => c.id),
+    branches: menu.map((c) => ({
+      id: c.id,
+      ids: categoryBranchIds(c.id, allCategories || []),
+    })),
     countryCode,
   })
 
-  const categories = topLevelCategories.map((c) => ({
+  const categories = menu.map((c) => ({
     id: c.id,
     name: c.name,
     handle: c.handle,
     count: categoryCounts[c.id] ?? 0,
+    children: c.children.map(({ id, name, handle }) => ({ id, name, handle })),
   }))
 
   return (

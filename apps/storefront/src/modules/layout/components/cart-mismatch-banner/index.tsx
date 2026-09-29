@@ -4,29 +4,45 @@ import { transferCart } from "@lib/data/customer"
 import { ExclamationCircleSolid } from "@medusajs/icons"
 import { StoreCart, StoreCustomer } from "@medusajs/types"
 import { Button } from "@modules/common/components/ui"
-import { useState } from "react"
+import { useEffect, useRef, useState } from "react"
+
+/**
+ * Shown when a signed-in customer holds a cart that isn't linked to their
+ * account - the transfer at sign-in failed, for example because the backend
+ * was briefly unavailable. It retries once on its own before asking the
+ * shopper, since a second attempt almost always succeeds.
+ */
 function CartMismatchBanner(props: {
   customer: StoreCustomer
   cart: StoreCart
 }) {
   const { customer, cart } = props
-  const [isPending, setIsPending] = useState(false)
-  const [actionText, setActionText] = useState("Run transfer again")
+  const needsTransfer = !!customer && !cart.customer_id
+  const [status, setStatus] = useState<"retrying" | "failed" | "pending">(
+    "retrying"
+  )
+  const retried = useRef(false)
 
-  if (!customer || !!cart.customer_id) {
-    return
-  }
-
-  const handleSubmit = async () => {
+  const runTransfer = async () => {
     try {
-      setIsPending(true)
-      setActionText("Transferring..")
-
+      // On success the server action revalidates the cart and the banner
+      // disappears with the refreshed page.
       await transferCart()
     } catch {
-      setActionText("Run transfer again")
-      setIsPending(false)
+      setStatus("failed")
     }
+  }
+
+  useEffect(() => {
+    if (!needsTransfer || retried.current) {
+      return
+    }
+    retried.current = true
+    runTransfer()
+  }, [needsTransfer])
+
+  if (!needsTransfer || status === "retrying") {
+    return null
   }
 
   return (
@@ -34,7 +50,8 @@ function CartMismatchBanner(props: {
       <div className="flex flex-col small:flex-row small:gap-2 gap-1 items-center">
         <span className="flex items-center gap-1">
           <ExclamationCircleSolid className="inline" />
-          Something went wrong when we tried to transfer your cart
+          Tas belanja kamu belum tersambung ke akun, jadi isinya belum tersimpan
+          di akunmu.
         </span>
 
         <span>·</span>
@@ -43,10 +60,13 @@ function CartMismatchBanner(props: {
           variant="transparent"
           className="hover:bg-transparent active:bg-transparent focus:bg-transparent disabled:text-orange-500 text-orange-950 p-0 bg-transparent"
           size="medium"
-          disabled={isPending}
-          onClick={handleSubmit}
+          disabled={status === "pending"}
+          onClick={() => {
+            setStatus("pending")
+            runTransfer()
+          }}
         >
-          {actionText}
+          {status === "pending" ? "Menyambungkan..." : "Sambungkan sekarang"}
         </Button>
       </div>
     </div>

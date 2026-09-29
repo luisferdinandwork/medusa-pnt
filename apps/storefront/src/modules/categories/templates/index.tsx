@@ -3,7 +3,7 @@ import { Suspense } from "react"
 
 import { listCategories } from "@lib/data/categories"
 import { getCategoryProductCounts, getProductFilters } from "@lib/data/products"
-import InteractiveLink from "@modules/common/components/interactive-link"
+import { buildCategoryMenu, categoryBranchIds } from "@lib/util/category-tree"
 import SkeletonProductGrid from "@modules/skeletons/templates/skeleton-product-grid"
 import RefinementList from "@modules/store/components/refinement-list"
 import MobileFilterBar from "@modules/store/components/refinement-list/mobile-filter-bar"
@@ -48,26 +48,33 @@ export default async function CategoryTemplate({
 
   getParents(category)
 
-  const [allCategories, { optionGroups }] = await Promise.all([
-    listCategories(),
-    getProductFilters({ categoryId: category.id, countryCode }),
+  const allCategories = (await listCategories()) || []
+  // A parent category lists the products of all its subcategories.
+  const categoryIds = categoryBranchIds(category.id, allCategories)
+  const menu = buildCategoryMenu(allCategories)
+
+  const [{ optionGroups }, categoryCounts] = await Promise.all([
+    getProductFilters({ categoryIds, countryCode }),
+    getCategoryProductCounts({
+      branches: menu.map((c) => ({
+        id: c.id,
+        ids: categoryBranchIds(c.id, allCategories),
+      })),
+      countryCode,
+    }),
   ])
 
-  const topLevelCategories = (allCategories || []).filter(
-    (c) => !c.parent_category
-  )
-
-  const categoryCounts = await getCategoryProductCounts({
-    categoryIds: topLevelCategories.map((c) => c.id),
-    countryCode,
-  })
-
-  const categories = topLevelCategories.map((c) => ({
+  const categories = menu.map((c) => ({
     id: c.id,
     name: c.name,
     handle: c.handle,
     count: categoryCounts[c.id] ?? 0,
+    children: c.children.map(({ id, name, handle }) => ({ id, name, handle })),
   }))
+  const subcategories =
+    menu.find((c) => c.id === category.id)?.children ??
+    menu.flatMap((c) => c.children).find((c) => c.id === category.id)?.children ??
+    []
 
   return (
     <div
@@ -113,18 +120,32 @@ export default async function CategoryTemplate({
             <p>{category.description}</p>
           </div>
         )}
-        {category.category_children && (
-          <div className="mb-8 text-base-large">
-            <ul className="grid grid-cols-1 gap-2">
-              {category.category_children?.map((c) => (
-                <li key={c.id}>
-                  <InteractiveLink href={`/categories/${c.handle}`}>
-                    {c.name}
-                  </InteractiveLink>
-                </li>
-              ))}
-            </ul>
-          </div>
+        {subcategories.length > 0 && (
+          <ul className="no-scrollbar -mx-6 mb-10 flex gap-3 overflow-x-auto px-6 small:mx-0 small:grid small:grid-cols-4 small:overflow-visible small:px-0">
+            {subcategories.map((sub) => (
+              <li key={sub.id} className="w-36 shrink-0 small:w-auto">
+                <LocalizedClientLink
+                  href={`/categories/${sub.handle}`}
+                  className="group flex flex-col gap-y-2"
+                >
+                  <span className="relative block aspect-square overflow-hidden rounded-large bg-photo">
+                    {sub.image && (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img
+                        src={sub.image}
+                        alt=""
+                        loading="lazy"
+                        className="absolute inset-0 h-full w-full object-contain p-2 mix-blend-darken transition-transform duration-500 group-hover:scale-105"
+                      />
+                    )}
+                  </span>
+                  <span className="text-sm font-semibold uppercase tracking-wide transition-colors group-hover:text-red-500">
+                    {sub.name}
+                  </span>
+                </LocalizedClientLink>
+              </li>
+            ))}
+          </ul>
         )}
         <Suspense
           fallback={
@@ -136,7 +157,7 @@ export default async function CategoryTemplate({
           <PaginatedProducts
             sortBy={sort}
             page={pageNumber}
-            categoryId={category.id}
+            categoryIds={categoryIds}
             countryCode={countryCode}
             optionValueIds={optionValueIds}
             minPrice={minPriceNumber}

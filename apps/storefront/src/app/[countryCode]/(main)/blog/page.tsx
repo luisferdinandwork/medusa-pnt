@@ -23,13 +23,13 @@ export async function generateMetadata(props: PageProps): Promise<Metadata> {
   const url = `${getBaseURL()}/${countryCode}/blog`
 
   return {
-    title: `Jurnal ${storeConfig.shortName} | Panduan, Perawatan & Cerita Lapangan`,
+    title: `Articles | ${storeConfig.shortName} - Panduan, Perawatan & Cerita Lapangan`,
     description: `Panduan memilih sepatu, tips perawatan, dan cerita lapangan dari ${storeConfig.name}. Ditulis untuk pemain dan pelari di Indonesia.`,
     alternates: { canonical: url },
     openGraph: {
       type: "website",
       url,
-      title: `Jurnal ${storeConfig.shortName}`,
+      title: `Articles | ${storeConfig.shortName}`,
       description: `Panduan, perawatan, dan cerita lapangan dari ${storeConfig.name}.`,
     },
   }
@@ -73,7 +73,7 @@ export default async function BlogIndexPage(props: PageProps) {
           }),
           breadcrumbSchema([
             { name: "Beranda", url: baseUrl },
-            { name: "Jurnal", url: `${baseUrl}/blog` },
+            { name: "Articles", url: `${baseUrl}/blog` },
           ]),
         ]}
       />
@@ -81,11 +81,11 @@ export default async function BlogIndexPage(props: PageProps) {
       <div className="content-container py-10 small:py-16 flex flex-col gap-y-10">
         <div className="flex flex-col gap-y-6">
           <Breadcrumbs
-            items={[{ label: "Beranda", href: "/" }, { label: "Jurnal" }]}
+            items={[{ label: "Beranda", href: "/" }, { label: "Articles" }]}
           />
           <div className="flex flex-col gap-y-4 max-w-3xl">
             <span className="text-xs font-semibold uppercase tracking-widest text-red-500">
-              Jurnal {storeConfig.shortName}
+              {storeConfig.shortName} Articles
             </span>
             <h1 className="font-display uppercase text-4xl small:text-6xl leading-[0.92]">
               Panduan, perawatan,
@@ -154,10 +154,10 @@ export default async function BlogIndexPage(props: PageProps) {
             <div className="flex flex-col gap-y-2 small:flex-row small:items-end small:justify-between">
               <div>
                 <span className="text-xs font-semibold uppercase tracking-widest text-red-500">
-                  Cerita produk
+                  Product Stories
                 </span>
                 <h2 className="font-display uppercase text-3xl small:text-4xl mt-2">
-                  Satu halaman per silo
+                  Satu halaman per produk
                 </h2>
               </div>
               <LocalizedClientLink

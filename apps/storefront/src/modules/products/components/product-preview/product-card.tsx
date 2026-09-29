@@ -66,6 +66,11 @@ export default function ProductCard({
   return (
     <div className="relative" data-testid="product-wrapper">
       <div className="absolute top-3 left-3 z-10 flex flex-col gap-y-1.5 items-start pointer-events-none">
+        {price?.price_type === "sale" && Number(price.percentage_diff) > 0 && (
+          <span className="inline-flex items-center rounded-full bg-red-500 px-2 py-1 text-xs font-semibold text-white">
+            -{price.percentage_diff}%
+          </span>
+        )}
         {isNew && <Badge color="ink">Baru</Badge>}
         {!!lowStock && (
           <Badge color="red" outline>
@@ -80,7 +85,7 @@ export default function ProductCard({
         onMouseEnter={startCycle}
         onMouseLeave={resetCycle}
       >
-        <div className="relative w-full aspect-[4/5] overflow-hidden p-4 bg-ui-bg-subtle shadow-elevation-card-rest rounded-large group-hover:shadow-elevation-card-hover transition-shadow ease-in-out duration-150">
+        <div className="relative w-full aspect-[4/5] overflow-hidden p-4 bg-photo shadow-elevation-card-rest rounded-large group-hover:shadow-elevation-card-hover transition-shadow ease-in-out duration-150">
           {activeImage ? (
             hasColors ? (
               colors.map((c, i) => (
@@ -93,7 +98,7 @@ export default function ProductCard({
                   quality={70}
                   sizes="(max-width: 576px) 280px, (max-width: 768px) 360px, (max-width: 992px) 480px, 800px"
                   className={clx(
-                    "absolute inset-0 object-contain object-center transition-opacity duration-500 ease-in-out",
+                    "absolute inset-0 object-contain object-center mix-blend-darken transition-opacity duration-500 ease-in-out",
                     i === activeIndex ? "opacity-100" : "opacity-0"
                   )}
                 />
@@ -106,7 +111,7 @@ export default function ProductCard({
                 draggable={false}
                 quality={70}
                 sizes="(max-width: 576px) 280px, (max-width: 768px) 360px, (max-width: 992px) 480px, 800px"
-                className="absolute inset-0 object-contain object-center transition-transform duration-500 ease-in-out group-hover:scale-105"
+                className="absolute inset-0 object-contain object-center mix-blend-darken transition-transform duration-500 ease-in-out group-hover:scale-105"
               />
             )
           ) : (

@@ -3,8 +3,8 @@ import { Button } from "@modules/common/components/ui"
 import LocalizedClientLink from "@modules/common/components/localized-client-link"
 
 /**
- * The silo story a product belongs to, shown on the product page. It gives the
- * product an editorial context and links it to the rest of its family.
+ * The product story that lists this product, shown on the product page. It
+ * gives the product an editorial context and links it to its sibling models.
  */
 export default async function ProductStoryTeaser({
   productHandle,
@@ -28,7 +28,7 @@ export default async function ProductStoryTeaser({
       <div className="content-container py-16 small:py-24 grid grid-cols-1 small:grid-cols-[1.2fr_1fr] gap-10 small:gap-16 items-start">
         <div className="flex flex-col gap-y-5">
           <span className="text-xs font-semibold uppercase tracking-widest text-red-400">
-            Cerita silo &middot; {story.silo}
+            Product Story &middot; {story.product_name}
           </span>
           <h2 className="font-display uppercase text-3xl small:text-4xl leading-[0.95]">
             {story.title}

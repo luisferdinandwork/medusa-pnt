@@ -54,7 +54,7 @@ export const FeaturedArticleCard = ({ article }: { article: Article }) => (
     </div>
     <div className="flex flex-col gap-y-4">
       <span className="text-xs font-semibold uppercase tracking-widest text-red-500">
-        {article.category || "Jurnal"}
+        {article.category || "Article"}
       </span>
       <h2 className="font-display uppercase text-3xl small:text-5xl leading-[0.95] group-hover:text-red-500 transition-colors">
         {article.title}
@@ -100,7 +100,7 @@ export default function ArticleCard({ article }: { article: Article }) {
       </div>
       <div className="flex flex-col gap-y-2">
         <span className="text-xs font-semibold uppercase tracking-widest text-red-500">
-          {article.category || "Jurnal"}
+          {article.category || "Article"}
         </span>
         <h3 className="font-display uppercase text-xl leading-tight group-hover:text-red-500 transition-colors">
           {article.title}

@@ -19,14 +19,14 @@ export async function generateMetadata(props: PageProps): Promise<Metadata> {
   const url = `${getBaseURL()}/${countryCode}/stories`
 
   return {
-    title: `Cerita Produk | ${storeConfig.shortName}`,
+    title: `Product Stories | ${storeConfig.shortName}`,
     description: `Setiap keluarga produk ${storeConfig.name} dijelaskan dalam satu halaman: untuk siapa, di permukaan apa, dan model mana yang cocok.`,
     alternates: { canonical: url },
     openGraph: {
       type: "website",
       url,
-      title: `Cerita Produk ${storeConfig.shortName}`,
-      description: `Panduan tiap silo produk ${storeConfig.name}.`,
+      title: `Product Stories | ${storeConfig.shortName}`,
+      description: `Panduan tiap produk ${storeConfig.name}.`,
     },
   }
 }
@@ -47,7 +47,7 @@ export default async function StoriesIndexPage(props: PageProps) {
           {
             "@context": "https://schema.org",
             "@type": "CollectionPage",
-            name: `Cerita Produk ${storeConfig.name}`,
+            name: `Product Stories ${storeConfig.name}`,
             url: `${baseUrl}/stories`,
             inLanguage: "id-ID",
             mainEntity: {
@@ -63,19 +63,19 @@ export default async function StoriesIndexPage(props: PageProps) {
           },
           breadcrumbSchema([
             { name: "Beranda", url: baseUrl },
-            { name: "Cerita Produk", url: `${baseUrl}/stories` },
+            { name: "Product Stories", url: `${baseUrl}/stories` },
           ]),
         ]}
       />
 
       <div className="content-container py-10 small:py-16 flex flex-col gap-y-10">
         <Breadcrumbs
-          items={[{ label: "Beranda", href: "/" }, { label: "Cerita Produk" }]}
+          items={[{ label: "Beranda", href: "/" }, { label: "Product Stories" }]}
         />
 
         <div className="flex flex-col gap-y-4 max-w-3xl">
           <span className="text-xs font-semibold uppercase tracking-widest text-red-500">
-            Cerita produk
+            Product Stories
           </span>
           <h1 className="font-display uppercase text-4xl small:text-6xl leading-[0.92]">
             Satu halaman,
@@ -83,7 +83,7 @@ export default async function StoriesIndexPage(props: PageProps) {
             satu <span className="text-red-500">keluarga produk</span>.
           </h1>
           <p className="text-ink-500 leading-relaxed max-w-xl">
-            Setiap silo - sepatu bola FG, futsal indoor, daily trainer - punya
+            Setiap produk - sepatu bola FG, futsal indoor, daily trainer - punya
             satu halaman yang menjelaskan untuk siapa produknya, di permukaan
             apa, dan bagaimana memilih di antara model yang ada.
           </p>
@@ -110,14 +110,14 @@ export default async function StoriesIndexPage(props: PageProps) {
               Masih ragu pilih yang mana?
             </h2>
             <p className="text-white/60 mt-2">
-              Jurnal kami membahas ukuran, sol, dan perawatan lebih dalam.
+              Artikel kami membahas ukuran, sol, dan perawatan lebih dalam.
             </p>
           </div>
           <LocalizedClientLink
             href="/blog"
             className="w-fit rounded-full bg-red-500 px-6 py-3 text-xs font-semibold uppercase tracking-wide text-white hover:bg-red-600 transition-colors"
           >
-            Buka jurnal
+            Baca artikel
           </LocalizedClientLink>
         </div>
       </div>

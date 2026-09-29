@@ -7,6 +7,13 @@ import {
   UpdateArticleSchema,
 } from "./admin/articles/validators"
 import {
+  CopyBannersSchema,
+  CreateBannerSchema,
+  ReorderBannersSchema,
+  UpdateBannerSchema,
+} from "./admin/banners/validators"
+import { UpdateProductPricingSchema } from "./admin/product-pricing/validators"
+import {
   CreateProductStorySchema,
   UpdateProductStorySchema,
 } from "./admin/product-stories/validators"
@@ -46,6 +53,31 @@ export default defineMiddlewares({
       matcher: "/admin/product-stories/:id",
       method: "POST",
       middlewares: [validateAndTransformBody(UpdateProductStorySchema)],
+    },
+    {
+      matcher: "/admin/banners",
+      method: "POST",
+      middlewares: [validateAndTransformBody(CreateBannerSchema)],
+    },
+    {
+      matcher: "/admin/banners/reorder",
+      method: "POST",
+      middlewares: [validateAndTransformBody(ReorderBannersSchema)],
+    },
+    {
+      matcher: "/admin/banners/copy",
+      method: "POST",
+      middlewares: [validateAndTransformBody(CopyBannersSchema)],
+    },
+    {
+      matcher: "/admin/banners/:id",
+      method: "POST",
+      middlewares: [validateAndTransformBody(UpdateBannerSchema)],
+    },
+    {
+      matcher: "/admin/product-pricing/:id",
+      method: "POST",
+      middlewares: [validateAndTransformBody(UpdateProductPricingSchema)],
     },
   ],
 })

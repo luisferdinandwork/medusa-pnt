@@ -12,6 +12,8 @@ const handle = z
 const section = z.object({
   heading: z.string().trim().min(1).max(200),
   body: z.string().trim().min(1).max(4000),
+  image_url: optionalText,
+  image_alt: optionalText,
 })
 
 const highlight = z.object({
@@ -29,7 +31,7 @@ const fields = {
   title: text.min(1),
   subtitle: optionalText,
   excerpt: z.string().trim().max(2000).nullish(),
-  silo: text.min(1),
+  product_name: text.min(1),
   category_handle: optionalText,
   product_handles: z.array(text.min(1)).max(40).nullish(),
   intro: z.string().trim().max(4000).nullish(),
@@ -53,7 +55,7 @@ const optionalFields = z.object(fields).partial()
 export const CreateProductStorySchema = optionalFields.extend({
   handle,
   title: fields.title,
-  silo: fields.silo,
+  product_name: fields.product_name,
 })
 
 export const UpdateProductStorySchema = optionalFields

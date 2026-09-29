@@ -8,14 +8,57 @@ import {
 } from "../modules/content/types"
 import { createArticleWorkflow } from "../workflows/create-article"
 import { createProductStoryWorkflow } from "../workflows/create-product-story"
+import { updateArticleWorkflow } from "../workflows/update-article"
+import { updateProductStoryWorkflow } from "../workflows/update-product-story"
 
 // Demo editorial for the SPECS storefronts. The copy is written for this
 // project; the `sources` point at the public specs.id pages the topics map to,
 // which is what an answer engine cites when it quotes an article.
-// Safe to re-run: handles that already exist are skipped.
+// Safe to re-run: handles that already exist are skipped. Pass `refresh`
+// (`npm run seed:content:refresh`) to overwrite those records with the copy and
+// images below instead - edits made to them in the admin are replaced.
 
 const SPECS = "https://www.specs.id"
 const day = (iso: string) => new Date(`${iso}T09:00:00.000Z`)
+
+// Editorial photos from Unsplash, free to use under the Unsplash License
+// (https://unsplash.com/license). They are referenced on the Unsplash CDN, the
+// same way the demo products reference specs.id, and cropped by URL: article
+// covers 3:2 (the card ratio), story covers 21:9, section images 16:9.
+// Picked without visible third-party sportswear logos. Replace any of them
+// from the admin with the upload field.
+const PHOTO = {
+  ballOnGrass: "photo-1574629810360-7efbbe195018", // Emilio Garcia
+  lacingUpAtHome: "photo-1643935272030-0dbc34b8fd29", // Adiel Gavish
+  shoeCleaningKit: "photo-1636262899511-dc5865c774dc", // Ervan M Wirawan
+  courtFromAbove: "photo-1712325485668-6b6830ba814e", // Nish Gupta
+  dirtPitchUnderTree: "photo-1718908722252-1507de62e94a", // Yada Pongsirirushakun
+  wornBoots: "photo-1783434423796-0c5401ee02ef", // Olumide Adekunle
+  parkRun: "photo-1781254620490-f8354c9be644", // Ben Kupke
+  trackLaneOne: "photo-1645847631200-21e35ce9be61", // Ben Soyka
+  longRoad: "photo-1585623031551-4e8e808eaca3", // Emma
+  turfAtNight: "photo-1487466365202-1afdb86c764e", // Jonathan Petersson
+  pitchFromAbove: "photo-1546717003-caee5f93a9db", // Victor
+  stadiumAtNight: "photo-1706675780107-7c43cc487928", // Alex Simpson
+  pitchLine: "photo-1459865264687-595d652de67e", // Sandro Schuh
+  futsalGoal: "photo-1553627220-92f0446b6a5f", // Marino Bobetic
+  outdoorCourt: "photo-1598026878267-1f22ae804eac", // Ian Lee
+  coveredCourtSunset: "photo-1695950695168-f4038b55a9ca", // Bayu Syaits
+  seafrontRun: "photo-1767268536524-24933566e213", // Pana K
+  lakesideTrail: "photo-1731846959520-fa904bc6f3c3", // Ayush Bhoyar
+  raceStart: "photo-1784572468902-94d41afc5e51", // Margo Evardson
+  trackStrides: "photo-1526676537331-7747bf8278fc", // Nicolas Hoizey
+  racePack: "photo-1667781838690-5f32ea0ccea6", // Tong Su
+  battleRopes: "photo-1785781048640-1658f69eca1d", // Ken Mathiasen
+  trackStretch: "photo-1562771379-eafdca7a02f8", // Alora Griffiths
+  trackSprint: "photo-1780319679390-9a8600c1355f", // Bohdan Hyrovych
+} as const
+
+const unsplash = (id: string, width: number, height: number) =>
+  `https://images.unsplash.com/${id}?w=${width}&h=${height}&fit=crop&q=80&auto=format`
+const articleCover = (id: string) => unsplash(id, 1600, 1067)
+const storyCover = (id: string) => unsplash(id, 2100, 900)
+const sectionImage = (id: string) => unsplash(id, 1400, 788)
 
 const ARTICLES: ArticleData[] = [
   {
@@ -34,7 +77,8 @@ const ARTICLES: ArticleData[] = [
     published_at: day("2026-08-04"),
     is_featured: true,
     rank: 1,
-    cover_image_alt: "Detail sol sepatu bola FG di atas rumput alami",
+    cover_image_url: articleCover(PHOTO.ballOnGrass),
+    cover_image_alt: "Pemain menggiring bola di atas rumput alami",
     seo_title: "FG, AG, SG, TF: Cara Memilih Sol Sepatu Bola yang Tepat",
     seo_description:
       "Panduan lengkap memilih sol sepatu bola: FG untuk rumput alami, AG untuk sintetis, SG untuk lapangan basah, TF untuk rumput karpet. Lengkap dengan tabel dan FAQ.",
@@ -143,7 +187,8 @@ Kalau tonjolan TF sudah rata atau ujung stud FG membulat, cengkeraman sudah hila
     status: "published",
     published_at: day("2026-08-12"),
     rank: 2,
-    cover_image_alt: "Mengukur panjang telapak kaki di atas kertas",
+    cover_image_url: articleCover(PHOTO.lacingUpAtHome),
+    cover_image_alt: "Pria duduk di sofa sambil mengikat tali sepatunya",
     seo_title: "Panduan Ukuran Sepatu SPECS - Cara Ukur Kaki di Rumah",
     seo_description:
       "Cara mengukur panjang kaki dengan kertas dan penggaris, membaca tabel ukuran SPECS, dan menentukan kapan perlu naik setengah nomor.",
@@ -234,7 +279,8 @@ Ukuran yang salah bisa ditukar dalam 30 hari selama sepatu belum dipakai di luar
     status: "published",
     published_at: day("2026-08-19"),
     rank: 3,
-    cover_image_alt: "Sepatu futsal dibersihkan dengan sikat lembut",
+    cover_image_url: articleCover(PHOTO.shoeCleaningKit),
+    cover_image_alt: "Sepasang sepatu putih di samping sikat dan cairan pembersih",
     seo_title: "Cara Merawat Sepatu Futsal Agar Awet - 6 Langkah",
     seo_description:
       "Cara membersihkan, mengeringkan, dan menyimpan sepatu futsal agar sol karet dan upper rajut tidak cepat rusak.",
@@ -321,7 +367,8 @@ Berdirikan atau letakkan mendatar, jangan ditumpuk di bawah barang berat. Kalau 
     status: "published",
     published_at: day("2026-08-26"),
     rank: 4,
-    cover_image_alt: "Sepatu futsal sol karet di atas lapangan vinyl",
+    cover_image_url: articleCover(PHOTO.courtFromAbove),
+    cover_image_alt: "Lapangan futsal berlantai sintetis merah dan biru dilihat dari atas",
     seo_title: "Memilih Sepatu Futsal untuk Lapangan Vinyl, Parket & Semen",
     seo_description:
       "Panduan memilih sol sepatu futsal sesuai permukaan lapangan: vinyl, parket kayu, semen, dan rumput sintetis indoor.",
@@ -416,7 +463,8 @@ Permukaan karet yang tadinya bertekstur berubah mengkilap dan halus. Tidak ada c
     published_at: day("2026-09-02"),
     is_featured: true,
     rank: 0,
-    cover_image_alt: "Pemain muda berlatih di lapangan tanah sore hari",
+    cover_image_url: articleCover(PHOTO.dirtPitchUnderTree),
+    cover_image_alt: "Anak-anak bermain bola di lapangan tanah di bawah pohon rindang",
     seo_title: "Dari Lapangan Kampung ke Rumput Stadion - Cerita Lapangan SPECS",
     seo_description:
       "Cerita Rizky, pemain muda liga provinsi yang belajar bola tanpa sepatu di lapangan tanah, dan apa yang berubah saat ia punya sepasang pertama.",
@@ -487,7 +535,8 @@ Tiga hal, urut dari yang paling penting:
     status: "published",
     published_at: day("2026-09-09"),
     rank: 5,
-    cover_image_alt: "Perbandingan stud sepatu bola baru dan aus",
+    cover_image_url: articleCover(PHOTO.wornBoots),
+    cover_image_alt: "Sepatu bola yang sudah aus menginjak bola kotor di atas rumput",
     seo_title: "Kapan Sepatu Bola Harus Diganti? 5 Tanda Penting",
     seo_description:
       "Lima tanda sepatu bola sudah waktunya diganti: stud membulat, midsole tidak kembali, upper melar, jahitan tumit lepas, dan nyeri berulang.",
@@ -519,8 +568,8 @@ Tiga hal, urut dari yang paling penting:
       { label: "SPECS Football Footwear", url: `${SPECS}/football/footwear.html` },
     ],
     related_product_handles: [
-      "specs-speedblaze-5-fg",
       "specs-xlr-4-fg",
+      "specs-galactica-morph-nv-fg",
     ],
     related_category_handles: ["sepatu-bola"],
     content: `## Sepatu tidak memberi tahu kapan dia habis
@@ -569,7 +618,8 @@ Tulis tanggal pembelian dengan spidol di bagian dalam lidah sepatu. Enam bulan k
     published_at: day("2026-08-15"),
     is_featured: true,
     rank: 1,
-    cover_image_alt: "Sepatu lari harian di atas aspal",
+    cover_image_url: articleCover(PHOTO.parkRun),
+    cover_image_alt: "Pelari menyusuri jalur taman yang rindang",
     seo_title: "Panduan Memilih Sepatu Lari untuk Pemula",
     seo_description:
       "Cara memilih sepatu lari pertama: bantalan, drop, ukuran, dan permukaan. Plus kenapa sepatu race belum tentu cocok untuk pemula.",
@@ -663,7 +713,8 @@ Sampai sekitar 30 kilometer per minggu, satu pasang cukup. Di atas itu, memutar 
     status: "published",
     published_at: day("2026-08-29"),
     rank: 2,
-    cover_image_alt: "Dua sepatu lari bersebelahan, harian dan race",
+    cover_image_url: articleCover(PHOTO.trackLaneOne),
+    cover_image_alt: "Lintasan atletik merah dengan angka satu di lajur pertama",
     seo_title: "Beda Sepatu Lari Harian dan Race Day - Kapan Memakai Apa",
     seo_description:
       "Perbedaan daily trainer dan sepatu race: bobot, bantalan, umur pakai, dan cara membagi keduanya dalam satu program latihan.",
@@ -746,7 +797,8 @@ Ambil daily trainer yang agak ringan. Sepatu itu bisa mengerjakan semua yang ada
     status: "published",
     published_at: day("2026-09-05"),
     rank: 3,
-    cover_image_alt: "Sol luar sepatu lari yang mulai aus",
+    cover_image_url: articleCover(PHOTO.longRoad),
+    cover_image_alt: "Pelari di jalan aspal panjang yang membelah hutan",
     seo_title: "Umur Sepatu Lari: Kapan Harus Ganti dan Cara Rotasi",
     seo_description:
       "Cara melacak kilometer sepatu lari, membaca tanda aus pada midsole dan outsole, dan menyusun rotasi dua pasang.",
@@ -823,9 +875,12 @@ Kombinasi paling berguna untuk pelari menengah: satu pasang bantalan tebal untuk
     tags: ["turf", "sol", "panduan"],
     author_name: "Tim Editorial SPECS",
     author_role: "Teamsport",
-    read_minutes: 4,
-    status: "draft",
+    read_minutes: 5,
+    status: "published",
+    published_at: day("2026-09-16"),
     rank: 6,
+    cover_image_url: articleCover(PHOTO.turfAtNight),
+    cover_image_alt: "Lapangan rumput sintetis diterangi lampu sorot pada malam hari",
     seo_title: "Sepatu Turf (TF): Kapan Dipakai dan Kenapa Paling Awet",
     seo_description:
       "Penjelasan sol turf: konstruksi, permukaan yang cocok, dan kenapa TF sering jadi pilihan paling masuk akal untuk lapangan di Indonesia.",
@@ -838,6 +893,7 @@ Kombinasi paling berguna untuk pelari menengah: satu pasang bantalan tebal untuk
       "TF dibuat untuk rumput karpet dan lapangan mini, bukan sebagai pengganti FG yang lebih murah.",
       "Beban tersebar ke banyak titik, jadi sol TF paling tahan lama di permukaan keras.",
       "Di rumput alami yang lunak, TF kehilangan cengkeraman.",
+      "Untuk pemain yang bermain di lapangan sewaan dua sampai tiga kali seminggu, TF sering jadi pasangan kedua yang paling masuk akal di samping FG.",
     ],
     faqs: [
       {
@@ -845,47 +901,91 @@ Kombinasi paling berguna untuk pelari menengah: satu pasang bantalan tebal untuk
         answer:
           "Bisa di rumput alami yang pendek dan padat, tapi cengkeramannya berkurang jelas di rumput tebal atau basah. Untuk rumput alami terawat, FG tetap pilihan yang benar.",
       },
+      {
+        question: "Apa bedanya sepatu turf dan sepatu futsal?",
+        answer:
+          "Sepatu futsal (IN) bersol karet datar untuk lantai vinyl dan parket, dengan pola pivot untuk berputar di tempat. Sepatu turf punya tonjolan karet kecil di seluruh sol supaya tetap mencengkeram serat rumput karpet. Di lantai indoor, tonjolan TF justru terasa goyah dan bisa meninggalkan bekas.",
+      },
+      {
+        question: "Apakah sepatu turf boleh dipakai di rumput sintetis berisi butiran karet?",
+        answer:
+          "Boleh, terutama di rumput sintetis yang seratnya pendek. Di rumput sintetis generasi baru yang seratnya panjang dan berisi banyak butiran karet, sol AG biasanya mencengkeram lebih baik, tapi TF tetap aman untuk lutut.",
+      },
     ],
-    sources: [{ label: "SPECS Football", url: `${SPECS}/football.html` }],
-    related_category_handles: ["sepatu-bola"],
-    content: `## Draf - menunggu foto produk
+    sources: [
+      { label: "SPECS Football", url: `${SPECS}/football.html` },
+      { label: "SPECS Football Footwear", url: `${SPECS}/football/footwear.html` },
+    ],
+    related_category_handles: ["sepatu-bola", "sepatu-futsal"],
+    content: `## Kenapa TF sering diremehkan
 
-Kerangka artikel sudah siap; tinggal melengkapi bagian konstruksi sol dan foto detail.
+Di rak toko, sepatu turf biasanya dipajang paling bawah dan dijual paling murah. Wajar kalau banyak orang menganggapnya versi latihan dari sepatu FG - sepatu untuk yang belum serius.
+
+Anggapan itu terbalik. Sebagian besar pertandingan amatir di Indonesia tidak dimainkan di rumput alami yang terawat. Pertandingannya ada di lapangan sewaan berumput karpet, lapangan mini di kompleks perumahan, dan lapangan sekolah yang rumputnya sudah tipis. Untuk permukaan seperti itu, TF bukan kompromi - justru sol yang paling tepat.
 
 ## Apa yang membuat TF berbeda
 
-Bukan stud, melainkan puluhan sampai ratusan tonjolan karet rendah yang menutupi hampir seluruh permukaan sol. Beban satu langkah dibagi ke banyak titik, bukan ke sebelas titik seperti pada FG.
+Bukan stud, melainkan puluhan sampai ratusan tonjolan karet rendah yang menutupi hampir seluruh permukaan sol. Beban satu langkah dibagi ke banyak titik, bukan ke sebelas sampai tiga belas titik seperti pada FG.
+
+Dua akibatnya langsung terasa:
+
+1. **Tekanan di telapak kaki lebih rata.** Di permukaan keras, stud FG terasa seperti berdiri di atas paku pendek. Tonjolan TF tidak.
+2. **Kaki tidak terkunci di permukaan.** Stud yang tidak bisa menembus permukaan keras membuat kaki tertahan saat berputar, dan beban itu pindah ke lutut dan pergelangan kaki. TF mencengkeram cukup untuk berlari dan berhenti, tapi tetap melepaskan kaki saat berputar.
 
 ## Permukaan yang cocok
 
-Rumput karpet, lapangan mini beralas keras, dan permukaan sintetis pendek.`,
+| Permukaan | TF | FG |
+| --- | --- | --- |
+| Rumput karpet / lapangan mini | Paling cocok | Tidak disarankan |
+| Rumput sintetis serat pendek | Cocok | Tidak disarankan |
+| Rumput alami yang tipis dan keras | Cocok | Cocok |
+| Rumput alami terawat | Kurang cengkeraman | Paling cocok |
+| Lapangan basah dan berlumpur | Licin | Kurang - pilih SG |
+
+## Kapan TF adalah pilihan yang salah
+
+Di rumput alami yang tebal atau basah, tonjolan TF terlalu pendek untuk menembus permukaan. Kamu akan tergelincir saat mengubah arah, dan itu bukan soal kualitas sepatunya. Kalau liga atau latihan utamamu ada di lapangan seperti ini, FG tetap jawabannya.
+
+TF juga bukan sepatu futsal. Di lantai vinyl dan parket, tonjolannya terasa goyah dan cengkeramannya kalah dari sol karet datar yang dibuat untuk berputar di tempat.
+
+## Umur pakai dan cara merawatnya
+
+Karena bebannya tersebar, sol TF biasanya tahan lebih lama dari FG di permukaan keras - sering satu setengah sampai dua kali lipat. Yang lebih cepat habis justru upper di area jari kaki, karena permukaan karpet mengikis ujung sepatu setiap kali kamu menendang atau mengerem.
+
+Setelah bermain, ketuk sepatu untuk membuang butiran karet dari lapangan sintetis, lepas insole, dan keringkan di tempat teduh. Butiran karet yang tertinggal di dalam sepatu bekerja seperti amplas pada lapisan dalam.
+
+> Kalau kamu hanya bisa membeli satu pasang, pilih sol untuk lapangan yang paling sering kamu pakai - bukan untuk lapangan yang paling kamu inginkan.`,
   },
 ]
 
 const PRODUCT_STORIES: ProductStoryData[] = [
   {
-    handle: "silo-sepatu-bola-fg",
+    handle: "sepatu-bola-fg",
     storefront_key: "specs-teamsport",
     title: "Sepatu Bola FG",
     subtitle: "Rumput alami, stud cetak, satu keluarga produk",
-    silo: "Sepatu Bola FG",
+    product_name: "Sepatu Bola FG",
     category_handle: "sepatu-bola",
     excerpt:
-      "Silo sepatu bola sol FG: dari Lightspeed Reborn yang dibuat untuk kecepatan sampai Accelerator Illuzion yang dibuat untuk pengatur tempo. Semuanya berbagi satu permukaan - rumput alami terawat.",
+      "Sepatu bola sol FG: dari Lightspeed Reborn yang dibuat untuk kecepatan sampai Accelerator Illuzion yang dibuat untuk pengatur tempo. Semuanya berbagi satu permukaan - rumput alami terawat.",
     intro:
-      "Semua sepatu di silo ini memakai sol FG (Firm Ground): stud cetak berukuran sedang yang menggigit rumput alami tanpa menancap terlalu dalam. Perbedaannya ada pada upper dan pelat - dan itulah yang menentukan model mana yang cocok dengan cara kamu bermain.",
+      "Semua model di sini memakai sol FG (Firm Ground): stud cetak berukuran sedang yang menggigit rumput alami tanpa menancap terlalu dalam. Perbedaannya ada pada upper dan pelat - dan itulah yang menentukan model mana yang cocok dengan cara kamu bermain.",
     sections: [
       {
-        heading: "Untuk siapa silo ini",
-        body: "Pemain yang lapangan utamanya rumput alami terawat - lapangan klub, stadion daerah, dan lapangan sekolah yang dipotong rutin. Kalau kamu lebih sering bermain di lapangan sewaan berumput sintetis, lihat silo AG.",
+        heading: "Untuk siapa produk ini",
+        body: "Pemain yang lapangan utamanya rumput alami terawat - lapangan klub, stadion daerah, dan lapangan sekolah yang dipotong rutin. Kalau kamu lebih sering bermain di lapangan sewaan berumput sintetis, lihat sepatu bola AG.",
+        image_url: sectionImage(PHOTO.stadiumAtNight),
+        image_alt: "Pertandingan malam di stadion berumput alami",
       },
       {
-        heading: "Tiga jalur di dalam silo",
-        body: "**Kecepatan** - Lightspeed Reborn Meta SL dan XR: upper tipis, bobot rendah, dibuat untuk pemain sayap yang hidup dari akselerasi.\n\n**Kontrol** - Accelerator Illuzion 4 Elite: tekstur upper yang lebih tebal di area sentuh, untuk gelandang yang mengatur tempo.\n\n**Nilai harian** - Speedblaze 5 dan XLR 4: konstruksi lebih tahan lama untuk pemain yang berlatih lebih sering daripada bertanding.",
+        heading: "Tiga pilihan model",
+        body: "**Kecepatan** - Lightspeed Reborn Meta SL dan XR: upper tipis, bobot rendah, dibuat untuk pemain sayap yang hidup dari akselerasi.\n\n**Kontrol** - Accelerator Illuzion 4 Elite: tekstur upper yang lebih tebal di area sentuh, untuk gelandang yang mengatur tempo.\n\n**Nilai harian** - Galactica Morph NV dan XLR 4: konstruksi lebih tahan lama untuk pemain yang berlatih lebih sering daripada bertanding.",
       },
       {
         heading: "Cara memilih dalam dua menit",
         body: "Mulai dari posisi bermain, bukan dari harga. Sayap dan penyerang mendapat manfaat paling besar dari bobot rendah. Gelandang dan bek tengah mendapat manfaat lebih besar dari upper yang lebih tebal dan tumit yang lebih terkunci. Setelah itu, cocokkan dengan anggaran - selisih performa antar tingkat harga jauh lebih kecil daripada selisih antara ukuran yang benar dan yang salah.",
+        image_url: sectionImage(PHOTO.pitchLine),
+        image_alt: "Garis putih di atas rumput alami yang dipotong rapi",
       },
     ],
     highlights: [
@@ -910,41 +1010,45 @@ const PRODUCT_STORIES: ProductStoryData[] = [
       "specs-lightspeed-reborn-meta-sl-fg",
       "specs-lightspeed-reborn-meta-xr-fg",
       "specs-galactica-morph-nv-fg",
-      "specs-speedblaze-5-fg",
       "specs-xlr-4-fg",
       "specs-accelerator-illuzion-4-elite-fg",
       "specs-accelerator-illuzion-4-elite-fg-brook-green",
     ],
     cta_label: "Lihat semua sepatu bola",
     cta_href: "/categories/sepatu-bola",
-    cover_image_alt: "Deretan sepatu bola sol FG",
+    cover_image_url: storyCover(PHOTO.pitchFromAbove),
+    cover_image_alt: "Lapangan sepak bola rumput alami dilihat dari udara",
     status: "published",
     published_at: day("2026-08-01"),
     rank: 1,
-    seo_title: "Sepatu Bola FG SPECS - Panduan Silo Produk",
+    seo_title: "Sepatu Bola FG SPECS - Panduan Produk",
     seo_description:
-      "Semua sepatu bola sol FG SPECS dalam satu halaman: Lightspeed Reborn, Accelerator Illuzion, Speedblaze, XLR, dan Galactica Morph.",
+      "Semua sepatu bola sol FG SPECS dalam satu halaman: Lightspeed Reborn, Accelerator Illuzion, Galactica Morph, dan XLR.",
     seo_keywords: ["sepatu bola fg", "sepatu bola specs", "sepatu rumput alami"],
   },
   {
-    handle: "silo-sepatu-futsal-indoor",
+    handle: "sepatu-futsal-indoor",
     storefront_key: "specs-teamsport",
     title: "Sepatu Futsal Indoor",
     subtitle: "Sol karet non-marking untuk lantai vinyl dan parket",
-    silo: "Sepatu Futsal IN",
+    product_name: "Sepatu Futsal IN",
     category_handle: "sepatu-futsal",
     excerpt:
-      "Silo sepatu futsal sol IN: Metasala untuk pemain yang bertumpu pada sentuhan, Accelerator untuk pemain yang bertumpu pada kecepatan. Semuanya non-marking.",
+      "Sepatu futsal sol IN: Metasala untuk pemain yang bertumpu pada sentuhan, Accelerator untuk pemain yang bertumpu pada kecepatan. Semuanya non-marking.",
     intro:
       "Sol IN (indoor) adalah karet datar non-marking dengan pola pivot di bawah telapak depan. Dibuat untuk berputar di tempat di atas lantai keras - gerakan yang paling sering terjadi dalam futsal dan yang paling cepat merusak sepatu yang salah.",
     sections: [
       {
-        heading: "Untuk siapa silo ini",
-        body: "Pemain futsal di lapangan indoor berlantai vinyl atau parket. Untuk lapangan semen, model di silo ini tetap bekerja tapi umur solnya jauh lebih pendek. Untuk rumput sintetis indoor, pakai sol TF.",
+        heading: "Untuk siapa produk ini",
+        body: "Pemain futsal di lapangan indoor berlantai vinyl atau parket. Untuk lapangan semen, model-model ini tetap bekerja tapi umur solnya jauh lebih pendek. Untuk rumput sintetis indoor, pakai sol TF.",
+        image_url: sectionImage(PHOTO.outdoorCourt),
+        image_alt: "Lapangan futsal berlantai semen dilihat dari atas",
       },
       {
-        heading: "Dua jalur di dalam silo",
+        heading: "Dua pilihan model",
         body: "**Sentuhan** - Metasala Nativ RE: upper yang lebih lembut dan profil lebih rendah, untuk pemain yang menahan dan mengarahkan bola di ruang sempit.\n\n**Kecepatan** - Accelerator Alpha Fury Pro, Lightspeed 4 Nitro Pro, dan Illuzion 4 Pro: bobot lebih ringan dan sol yang lebih responsif untuk pemain yang menyerang ruang.",
+        image_url: sectionImage(PHOTO.coveredCourtSunset),
+        image_alt: "Lapangan futsal beratap saat matahari terbenam",
       },
       {
         heading: "Yang perlu diperiksa sebelum membeli",
@@ -978,33 +1082,36 @@ const PRODUCT_STORIES: ProductStoryData[] = [
     ],
     cta_label: "Lihat semua sepatu futsal",
     cta_href: "/categories/sepatu-futsal",
-    cover_image_alt: "Sepatu futsal sol indoor di lantai vinyl",
+    cover_image_url: storyCover(PHOTO.futsalGoal),
+    cover_image_alt: "Gawang futsal di atas lantai parket",
     status: "published",
     published_at: day("2026-08-01"),
     rank: 2,
-    seo_title: "Sepatu Futsal Indoor SPECS - Panduan Silo Produk",
+    seo_title: "Sepatu Futsal Indoor SPECS - Panduan Produk",
     seo_description:
       "Semua sepatu futsal sol IN SPECS: Metasala Nativ RE, Accelerator Alpha Fury, Lightspeed 4 Nitro, dan Illuzion 4 Pro.",
     seo_keywords: ["sepatu futsal", "sepatu futsal indoor", "sol non marking"],
   },
   {
-    handle: "silo-sepatu-lari-harian",
+    handle: "sepatu-lari-harian",
     storefront_key: "specs-run",
     title: "Sepatu Lari Harian",
     subtitle: "Bantalan yang memaafkan, umur pakai yang panjang",
-    silo: "Daily Trainer",
+    product_name: "Daily Trainer",
     category_handle: "sepatu-running",
     excerpt:
-      "Silo daily trainer: sepatu yang mengerjakan 80-90% kilometermu. Bantalan sedang sampai tebal, bobot menengah, dan busa yang dirancang bertahan ratusan kilometer.",
+      "Daily trainer: sepatu yang mengerjakan 80-90% kilometermu. Bantalan sedang sampai tebal, bobot menengah, dan busa yang dirancang bertahan ratusan kilometer.",
     intro:
       "Daily trainer bukan kategori kompromi - ini kategori yang menanggung hampir seluruh beban latihanmu. Yang dicari di sini bukan bobot terendah, melainkan bantalan yang stabil dan busa yang tidak mati dalam dua bulan.",
     sections: [
       {
-        heading: "Untuk siapa silo ini",
-        body: "Pelari pemula sampai menengah, dan pelari berpengalaman untuk lari mudah serta hari pemulihan. Kalau kamu baru mulai berlari, silo ini adalah tempat yang benar untuk sepatu pertamamu.",
+        heading: "Untuk siapa produk ini",
+        body: "Pelari pemula sampai menengah, dan pelari berpengalaman untuk lari mudah serta hari pemulihan. Kalau kamu baru mulai berlari, produk ini adalah tempat yang benar untuk sepatu pertamamu.",
+        image_url: sectionImage(PHOTO.lakesideTrail),
+        image_alt: "Pelari di jalan tanah di tepi danau",
       },
       {
-        heading: "Dua jalur di dalam silo",
+        heading: "Dua pilihan model",
         body: "**Bantalan maksimal** - Airglide: tumpukan busa lebih tinggi untuk lari jauh dan pemulihan, paling memaafkan untuk pelari berbadan lebih besar.\n\n**Serbaguna** - Speedvolt dan Speedvolt Women: profil lebih rendah dan sedikit lebih responsif, nyaman untuk lari harian sekaligus sesi tempo ringan.",
       },
       {
@@ -1037,34 +1144,39 @@ const PRODUCT_STORIES: ProductStoryData[] = [
     ],
     cta_label: "Lihat semua sepatu lari",
     cta_href: "/categories/sepatu-running",
-    cover_image_alt: "Sepatu lari harian di atas aspal pagi",
+    cover_image_url: storyCover(PHOTO.seafrontRun),
+    cover_image_alt: "Pelari menyusuri jalan tepi laut pada pagi yang cerah",
     status: "published",
     published_at: day("2026-08-05"),
     rank: 3,
-    seo_title: "Sepatu Lari Harian SPECS - Panduan Silo Produk",
+    seo_title: "Sepatu Lari Harian SPECS - Panduan Produk",
     seo_description:
       "Daily trainer SPECS: Airglide, Speedvolt, dan Speedvolt Women. Bantalan, bobot, umur pakai, dan panduan ukuran.",
     seo_keywords: ["sepatu lari harian", "daily trainer", "sepatu lari specs"],
   },
   {
-    handle: "silo-sepatu-lari-race-day",
+    handle: "sepatu-lari-race-day",
     storefront_key: "specs-run",
     title: "Sepatu Lari Race Day",
     subtitle: "Ringan, responsif, dan dibuat untuk hari yang tepat",
-    silo: "Race Day",
+    product_name: "Race Day",
     category_handle: "sepatu-running",
     excerpt:
-      "Silo race day: busa super ringan dan sol responsif untuk sesi cepat dan hari lomba. Umur pakai pendek, dan itu memang bagian dari desainnya.",
+      "Race day: busa super ringan dan sol responsif untuk sesi cepat dan hari lomba. Umur pakai pendek, dan itu memang bagian dari desainnya.",
     intro:
       "Sepatu race dibuat dari kompromi yang berlawanan dengan sepatu harian: mengembalikan energi secepat mungkin, dengan konsekuensi umur pakai yang jauh lebih pendek. Dipakai di hari yang tepat, selisihnya terasa. Dipakai setiap hari, keunggulannya habis sebelum lomba datang.",
     sections: [
       {
-        heading: "Untuk siapa silo ini",
+        heading: "Untuk siapa produk ini",
         body: "Pelari yang sudah punya basis latihan rutin dan ingin menambah sepatu kedua untuk sesi interval, tempo, dan hari lomba. Bukan untuk sepatu pertama.",
+        image_url: sectionImage(PHOTO.trackStrides),
+        image_alt: "Kaki para pelari di lintasan atletik",
       },
       {
         heading: "Cara memakainya",
         body: "Batasi ke 10-20% total kilometer mingguan. Coba minimal dua kali sebelum hari lomba - sol yang lebih tinggi mengubah cara kaki mendarat, dan itu bukan hal yang ingin kamu pelajari di kilometer pertama dari 21.",
+        image_url: sectionImage(PHOTO.racePack),
+        image_alt: "Rombongan pelari di jalan raya saat lomba",
       },
       {
         heading: "Menghitung biayanya",
@@ -1087,34 +1199,39 @@ const PRODUCT_STORIES: ProductStoryData[] = [
     product_handles: ["specs-novaspeed-subsx", "specs-novaspeed-women-subsx"],
     cta_label: "Lihat koleksi race",
     cta_href: "/categories/sepatu-running",
-    cover_image_alt: "Sepatu lari race day di garis start",
+    cover_image_url: storyCover(PHOTO.raceStart),
+    cover_image_alt: "Pelari melewati gerbang start sebuah lomba lari",
     status: "published",
     published_at: day("2026-08-05"),
     rank: 4,
-    seo_title: "Sepatu Lari Race Day SPECS - Panduan Silo Produk",
+    seo_title: "Sepatu Lari Race Day SPECS - Panduan Produk",
     seo_description:
       "Sepatu race SPECS Novaspeed SubsX: bobot, umur pakai, dan cara membaginya dengan sepatu harian.",
     seo_keywords: ["sepatu race", "novaspeed", "sepatu lomba lari"],
   },
   {
-    handle: "silo-apparel-latihan",
+    handle: "apparel-latihan",
     storefront_key: null,
     title: "Apparel Latihan",
     subtitle: "Kaos, tight, dan kaos kaki untuk sesi harian",
-    silo: "Apparel Latihan",
+    product_name: "Apparel Latihan",
     category_handle: "apparel",
     excerpt:
-      "Silo apparel latihan: bahan yang memindahkan keringat keluar, potongan yang tidak menahan gerakan, dan kaos kaki yang tidak melorot di menit ketiga puluh.",
+      "Apparel latihan: bahan yang memindahkan keringat keluar, potongan yang tidak menahan gerakan, dan kaos kaki yang tidak melorot di menit ketiga puluh.",
     intro:
       "Apparel latihan jarang jadi keputusan besar, tapi pengaruhnya harian. Yang dicari sederhana: bahan yang cepat kering, jahitan yang tidak bergesekan di titik yang sama berulang kali, dan potongan yang sesuai dengan gerakan olahragamu.",
     sections: [
       {
-        heading: "Untuk siapa silo ini",
+        heading: "Untuk siapa produk ini",
         body: "Siapa pun yang berlatih lebih dari dua kali seminggu. Kaos katun menyerap keringat dan menahannya; bahan performa memindahkannya ke permukaan supaya menguap.",
+        image_url: sectionImage(PHOTO.trackStretch),
+        image_alt: "Pria berkaos putih meregangkan otot di lintasan",
       },
       {
         heading: "Yang perlu diperhatikan",
         body: "**Kaos** - cari jahitan datar di bahu dan sisi badan, area yang paling sering bergesekan dengan tali tas atau lengan.\n\n**Tight dan legging** - pinggang yang tidak melorot saat berlari dan bahan yang tidak menerawang saat menunduk.\n\n**Kaos kaki** - bagian yang paling sering diabaikan dan paling sering menyebabkan lecet. Kaos kaki olahraga dengan bantalan di tumit dan telapak depan mengurangi gesekan langsung ke kulit.",
+        image_url: sectionImage(PHOTO.trackSprint),
+        image_alt: "Pelari berlatih di lintasan atletik merah",
       },
     ],
     highlights: [
@@ -1138,21 +1255,23 @@ const PRODUCT_STORIES: ProductStoryData[] = [
     ],
     cta_label: "Lihat semua apparel",
     cta_href: "/categories/apparel",
-    cover_image_alt: "Kaos latihan dan tight dilipat",
+    cover_image_url: storyCover(PHOTO.battleRopes),
+    cover_image_alt: "Pria berkaos hitam berlatih dengan tali tambang",
     status: "published",
     published_at: day("2026-08-08"),
     rank: 5,
-    seo_title: "Apparel Latihan SPECS - Panduan Silo Produk",
+    seo_title: "Apparel Latihan SPECS - Panduan Produk",
     seo_description:
       "Kaos latihan, legging, tight, dan kaos kaki SPECS: bahan, potongan, dan cara merawatnya.",
     seo_keywords: ["apparel latihan", "kaos olahraga specs", "legging olahraga"],
   },
 ]
 
-export default async function seedContent({ container }: ExecArgs) {
+export default async function seedContent({ container, args }: ExecArgs) {
   const logger = container.resolve(ContainerRegistrationKeys.LOGGER)
   const query = container.resolve(ContainerRegistrationKeys.QUERY)
   const service: ContentModuleService = container.resolve(CONTENT_MODULE)
+  const refresh = (args ?? []).includes("refresh")
 
   const { data: products } = await query.graph({
     entity: "product",
@@ -1160,49 +1279,70 @@ export default async function seedContent({ container }: ExecArgs) {
   })
   const productHandles = new Set(products.map((p) => p.handle))
 
+  const warnMissingProducts = (label: string, handles?: string[] | null) => {
+    const missing = (handles ?? []).filter((handle) => !productHandles.has(handle))
+    if (missing.length) {
+      logger.warn(
+        `${label} references products that are not seeded: ${missing.join(", ")}`
+      )
+    }
+  }
+
   const existingArticles = await service.listArticles(
     {},
-    { select: ["handle"] }
+    { select: ["id", "handle"] }
   )
-  const existingArticleHandles = new Set(existingArticles.map((a) => a.handle))
+  const articleIds = new Map(existingArticles.map((a) => [a.handle, a.id]))
 
   let createdArticles = 0
+  let refreshedArticles = 0
   for (const article of ARTICLES) {
-    if (existingArticleHandles.has(article.handle)) {
+    warnMissingProducts(
+      `Article "${article.handle}"`,
+      article.related_product_handles
+    )
+
+    const id = articleIds.get(article.handle)
+    if (!id) {
+      await createArticleWorkflow(container).run({ input: article })
+      createdArticles++
+    } else if (refresh) {
+      const { handle: _handle, ...data } = article
+      await updateArticleWorkflow(container).run({ input: { id, data } })
+      refreshedArticles++
+    } else {
       logger.info(`Article "${article.handle}" already exists, skipping.`)
-      continue
     }
-    await createArticleWorkflow(container).run({ input: article })
-    createdArticles++
   }
 
   const existingStories = await service.listProductStories(
     {},
-    { select: ["handle"] }
+    { select: ["id", "handle"] }
   )
-  const existingStoryHandles = new Set(existingStories.map((s) => s.handle))
+  const storyIds = new Map(existingStories.map((s) => [s.handle, s.id]))
 
   let createdStories = 0
+  let refreshedStories = 0
   for (const story of PRODUCT_STORIES) {
-    if (existingStoryHandles.has(story.handle)) {
+    warnMissingProducts(`Product story "${story.handle}"`, story.product_handles)
+
+    const id = storyIds.get(story.handle)
+    if (!id) {
+      await createProductStoryWorkflow(container).run({ input: story })
+      createdStories++
+    } else if (refresh) {
+      const { handle: _handle, ...data } = story
+      await updateProductStoryWorkflow(container).run({ input: { id, data } })
+      refreshedStories++
+    } else {
       logger.info(`Product story "${story.handle}" already exists, skipping.`)
-      continue
     }
-
-    const missing = (story.product_handles ?? []).filter(
-      (handle) => !productHandles.has(handle)
-    )
-    if (missing.length) {
-      logger.warn(
-        `Product story "${story.handle}" references products that are not seeded: ${missing.join(", ")}`
-      )
-    }
-
-    await createProductStoryWorkflow(container).run({ input: story })
-    createdStories++
   }
 
   logger.info(
-    `Content seed done: ${createdArticles} article(s) and ${createdStories} product story(ies) created.`
+    `Content seed done: ${createdArticles} article(s) and ${createdStories} product story(ies) created` +
+      (refresh
+        ? `, ${refreshedArticles} article(s) and ${refreshedStories} product story(ies) refreshed.`
+        : ".")
   )
 }

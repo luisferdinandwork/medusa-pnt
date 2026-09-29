@@ -84,7 +84,7 @@ export default async function ArticlePage(props: PageProps) {
           articleSchema(article, { url, siteName: storeConfig.name }),
           breadcrumbSchema([
             { name: "Beranda", url: baseUrl },
-            { name: "Jurnal", url: `${baseUrl}/blog` },
+            { name: "Articles", url: `${baseUrl}/blog` },
             { name: article.title, url },
           ]),
           ...(article.faqs?.length ? [faqSchema(article.faqs)] : []),
@@ -96,7 +96,7 @@ export default async function ArticlePage(props: PageProps) {
           <Breadcrumbs
             items={[
               { label: "Beranda", href: "/" },
-              { label: "Jurnal", href: "/blog" },
+              { label: "Articles", href: "/blog" },
               { label: article.title },
             ]}
           />

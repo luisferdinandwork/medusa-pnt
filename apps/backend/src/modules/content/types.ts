@@ -11,6 +11,9 @@ export type Source = {
 export type StorySection = {
   heading: string
   body: string
+  // Optional picture shown with the section, uploaded through the File Module.
+  image_url?: string | null
+  image_alt?: string | null
 }
 
 export type StoryHighlight = {
@@ -60,7 +63,7 @@ export const PRODUCT_STORY_FIELDS = [
   "title",
   "subtitle",
   "excerpt",
-  "silo",
+  "product_name",
   "category_handle",
   "product_handles",
   "intro",
@@ -119,7 +122,7 @@ export type ProductStoryData = {
   title: string
   subtitle?: string | null
   excerpt?: string | null
-  silo: string
+  product_name: string
   category_handle?: string | null
   product_handles?: string[] | null
   intro?: string | null

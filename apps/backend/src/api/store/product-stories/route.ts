@@ -14,8 +14,8 @@ const toInt = (value: unknown, fallback: number, max: number) => {
   return Number.isNaN(parsed) || parsed < 0 ? fallback : Math.min(parsed, max)
 }
 
-// Published product stories. ?product_handle returns the stories whose silo
-// contains that product, which is how a product page finds its story.
+// Published product stories. ?product_handle returns the stories that list
+// that product, which is how a product page finds its story.
 export const GET = async (req: MedusaStoreRequest, res: MedusaResponse) => {
   const service: ContentModuleService = req.scope.resolve(CONTENT_MODULE)
   const storefrontKey = await resolveStorefrontKey(req)

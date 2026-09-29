@@ -139,23 +139,25 @@ export default async function Footer() {
             )}
             <div className="flex flex-col gap-y-2">
               <span className="txt-small-plus text-white uppercase tracking-wide text-xs">
-                Panduan
+                Editorial
               </span>
               <ul className="grid grid-cols-1 gap-y-2 text-white/60 txt-small">
                 <li>
                   <LocalizedClientLink
                     href="/blog"
                     className="hover:text-white"
+                    data-testid="footer-articles-link"
                   >
-                    Jurnal
+                    Articles
                   </LocalizedClientLink>
                 </li>
                 <li>
                   <LocalizedClientLink
                     href="/stories"
                     className="hover:text-white"
+                    data-testid="footer-product-stories-link"
                   >
-                    Cerita produk
+                    Product Stories
                   </LocalizedClientLink>
                 </li>
               </ul>

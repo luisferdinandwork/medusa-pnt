@@ -22,6 +22,8 @@ type RemoteStorefront = {
   editorial_heading: string | null
   editorial_body: string | null
   editorial_cta_label: string | null
+  editorial_image_url: string | null
+  editorial_image_alt: string | null
   guide_cards: GuideCard[] | null
 }
 
@@ -48,6 +50,8 @@ function fromRemote(remote: RemoteStorefront): StoreConfig {
       heading: remote.editorial_heading ?? "",
       body: remote.editorial_body ?? "",
       ctaLabel: remote.editorial_cta_label ?? "",
+      imageUrl: remote.editorial_image_url ?? "",
+      imageAlt: remote.editorial_image_alt ?? "",
     },
     guideCards: remote.guide_cards ?? [],
   }

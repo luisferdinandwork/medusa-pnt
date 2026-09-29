@@ -1,9 +1,9 @@
 import { model } from "@medusajs/framework/utils"
 import type { Faq, StoryHighlight, StorySection } from "../types"
 
-// A product story is a short article that describes one product silo (a family
-// of products sold together, e.g. "Sepatu Bola FG"). It gives the silo a hub
-// page to link from and gives every product in it a piece of editorial copy.
+// A product story is a short article that describes one product (e.g. "Sepatu
+// Bola FG", which may cover several models). It gives the product a page to
+// link from and gives every model it lists a piece of editorial copy.
 const ProductStory = model.define("product_story", {
   id: model.id({ prefix: "pstory" }).primaryKey(),
   handle: model.text().unique(),
@@ -13,11 +13,12 @@ const ProductStory = model.define("product_story", {
   subtitle: model.text().nullable(),
   excerpt: model.text().nullable(),
 
-  // The silo this story owns: a label, and the category it maps to in the shop.
-  silo: model.text(),
+  // The product this story is about: a label, and the category it maps to in
+  // the shop.
+  product_name: model.text(),
   category_handle: model.text().nullable(),
-  // Handles of the products that belong to the silo. Product pages look
-  // themselves up here to decide which story to show.
+  // Handles of the products the story covers. Product pages look themselves
+  // up here to decide which story to show.
   product_handles: model.json<string[]>().nullable(),
 
   intro: model.text().nullable(),

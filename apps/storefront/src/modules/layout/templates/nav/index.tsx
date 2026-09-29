@@ -5,12 +5,20 @@ import { listLocales } from "@lib/data/locales"
 import { getLocale } from "@lib/data/locale-actions"
 import { listRegions } from "@lib/data/regions"
 import { getStoreConfig } from "@lib/data/store-config"
+import { buildCategoryMenu } from "@lib/util/category-tree"
 import { StoreRegion } from "@medusajs/types"
 import { MagnifyingGlass, User } from "@medusajs/icons"
 import Image from "next/image"
 import LocalizedClientLink from "@modules/common/components/localized-client-link"
 import CartButton from "@modules/layout/components/cart-button"
+import MegaMenu from "@modules/layout/components/mega-menu"
+import NavShell from "@modules/layout/components/nav-shell"
 import SideMenu from "@modules/layout/components/side-menu"
+
+// The header shows the four main categories (Footwear, Apparel, Accessories,
+// Equipment - the top-level categories in admin order); their subcategories
+// open in the mega menu.
+const MAIN_CATEGORY_COUNT = 4
 
 export default async function Nav() {
   const [regions, locales, currentLocale, productCategories, storeConfig] =
@@ -22,104 +30,83 @@ export default async function Nav() {
       getStoreConfig(),
     ])
 
-  const topLevelCategories = (productCategories || []).filter(
-    (c) => !c.parent_category
-  )
+  const menu = buildCategoryMenu(productCategories || []).slice(0, MAIN_CATEGORY_COUNT)
 
   return (
-    <div className="sticky top-0 inset-x-0 z-50 group">
-      <header className="relative h-16 mx-auto duration-200 bg-paper border-b border-paper-200">
-        <nav className="content-container flex items-center justify-between w-full h-full text-small-regular">
-          <div className="flex-1 basis-0 h-full flex items-center gap-x-6">
-            <SideMenu
-              storeName={storeConfig.name}
-              regions={regions}
-              locales={locales}
-              currentLocale={currentLocale}
+    <NavShell>
+      <nav className="content-container flex h-full w-full items-center justify-between text-small-regular">
+        <div className="flex h-full flex-1 basis-0 items-center gap-x-4">
+          <SideMenu
+            storeName={storeConfig.name}
+            regions={regions}
+            locales={locales}
+            currentLocale={currentLocale}
+            categories={menu}
+          />
+          <MegaMenu categories={menu} />
+        </div>
+
+        <div className="flex h-full items-center">
+          <LocalizedClientLink
+            href="/"
+            className="group flex items-center gap-x-2"
+            data-testid="nav-store-link"
+          >
+            <Image
+              src="/logo/3.png"
+              alt=""
+              aria-hidden
+              width={28}
+              height={28}
+              className="h-7 w-7 object-contain group-data-[transparent=true]/nav:hidden"
+              priority
             />
-            <ul className="hidden small:flex items-center gap-x-6 h-full text-ink-500 text-xs font-semibold uppercase tracking-wide">
-              {topLevelCategories.slice(0, 4).map((category) => (
-                <li key={category.id}>
-                  <LocalizedClientLink
-                    href={`/categories/${category.handle}`}
-                    className="hover:text-red-500 transition-colors"
-                  >
-                    {category.name}
-                  </LocalizedClientLink>
-                </li>
-              ))}
-              <li>
-                <LocalizedClientLink
-                  href="/stories"
-                  className="hover:text-red-500 transition-colors"
-                >
-                  Cerita
-                </LocalizedClientLink>
-              </li>
-              <li>
-                <LocalizedClientLink
-                  href="/blog"
-                  className="hover:text-red-500 transition-colors"
-                >
-                  Jurnal
-                </LocalizedClientLink>
-              </li>
-            </ul>
-          </div>
+            <Image
+              src="/logo/4.png"
+              alt=""
+              aria-hidden
+              width={28}
+              height={28}
+              className="hidden h-7 w-7 object-contain group-data-[transparent=true]/nav:block"
+              priority
+            />
+            <span className="font-display text-2xl uppercase tracking-tight transition-colors group-hover:text-red-500">
+              {storeConfig.shortName}
+            </span>
+          </LocalizedClientLink>
+        </div>
 
-          <div className="flex items-center h-full">
-            <LocalizedClientLink
-              href="/"
-              className="flex items-center gap-x-2 group"
-              data-testid="nav-store-link"
-            >
-              <Image
-                src="/logo/3.png"
-                alt=""
-                aria-hidden
-                width={28}
-                height={28}
-                className="h-7 w-7 object-contain"
-                priority
-              />
-              <span className="font-display uppercase text-2xl tracking-tight group-hover:text-red-500 transition-colors">
-                {storeConfig.shortName}
-              </span>
-            </LocalizedClientLink>
-          </div>
-
-          <div className="flex items-center gap-x-5 h-full flex-1 basis-0 justify-end">
-            <button
-              type="button"
-              aria-label="Cari"
-              className="hidden small:flex hover:text-red-500 transition-colors"
-            >
-              <MagnifyingGlass />
-            </button>
-            <LocalizedClientLink
-              className="hidden small:flex hover:text-red-500 transition-colors"
-              href="/account"
-              data-testid="nav-account-link"
-              aria-label="Akun"
-            >
-              <User />
-            </LocalizedClientLink>
-            <Suspense
-              fallback={
-                <LocalizedClientLink
-                  className="hover:text-red-500 flex gap-2"
-                  href="/cart"
-                  data-testid="nav-cart-link"
-                >
-                  Tas (0)
-                </LocalizedClientLink>
-              }
-            >
-              <CartButton />
-            </Suspense>
-          </div>
-        </nav>
-      </header>
-    </div>
+        <div className="flex h-full flex-1 basis-0 items-center justify-end gap-x-5">
+          <button
+            type="button"
+            aria-label="Cari"
+            className="hidden transition-colors hover:text-red-500 small:flex"
+          >
+            <MagnifyingGlass />
+          </button>
+          <LocalizedClientLink
+            className="hidden transition-colors hover:text-red-500 small:flex"
+            href="/account"
+            data-testid="nav-account-link"
+            aria-label="Akun"
+          >
+            <User />
+          </LocalizedClientLink>
+          <Suspense
+            fallback={
+              <LocalizedClientLink
+                className="flex gap-2 hover:text-red-500"
+                href="/cart"
+                data-testid="nav-cart-link"
+              >
+                Tas (0)
+              </LocalizedClientLink>
+            }
+          >
+            <CartButton />
+          </Suspense>
+        </div>
+      </nav>
+    </NavShell>
   )
 }

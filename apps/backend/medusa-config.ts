@@ -20,5 +20,8 @@ module.exports = defineConfig({
     {
       resolve: "./src/modules/content",
     },
+    {
+      resolve: "./src/modules/banner",
+    },
   ],
 })

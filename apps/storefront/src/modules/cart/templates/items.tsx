@@ -1,14 +1,19 @@
 import repeat from "@lib/util/repeat"
 import { HttpTypes } from "@medusajs/types"
+import { EMPTY_OMNICHANNEL, type OmnichannelData } from "@lib/util/omnichannel"
 
 import Item from "@modules/cart/components/item"
 import SkeletonCartItem from "@modules/skeletons/components/skeleton-cart-item"
 
 type ItemsTemplateProps = {
   cart?: HttpTypes.StoreCart
+  omnichannel?: OmnichannelData
 }
 
-const ItemsTemplate = ({ cart }: ItemsTemplateProps) => {
+const ItemsTemplate = ({
+  cart,
+  omnichannel = EMPTY_OMNICHANNEL,
+}: ItemsTemplateProps) => {
   const items = cart?.items
 
   return (
@@ -33,6 +38,8 @@ const ItemsTemplate = ({ cart }: ItemsTemplateProps) => {
                     key={item.id}
                     item={item}
                     currencyCode={cart?.currency_code}
+                    omnichannel={omnichannel}
+                    cartItems={items}
                   />
                 )
               })

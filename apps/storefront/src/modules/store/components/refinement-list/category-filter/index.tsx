@@ -8,6 +8,8 @@ export type CategoryFilterItem = {
   name: string
   handle: string
   count: number
+  /** Subcategories, listed under the main category while it is browsed. */
+  children?: { id: string; name: string; handle: string }[]
 }
 
 type CategoryFilterProps = {
@@ -38,6 +40,9 @@ const CategoryFilter = ({ categories, currentHandle }: CategoryFilterProps) => {
         </li>
         {categories.map((category) => {
           const active = category.handle === currentHandle
+          const children = category.children ?? []
+          const inBranch =
+            active || children.some((child) => child.handle === currentHandle)
 
           return (
             <li key={category.id}>
@@ -53,6 +58,25 @@ const CategoryFilter = ({ categories, currentHandle }: CategoryFilterProps) => {
                   ({category.count})
                 </span>
               </LocalizedClientLink>
+              {inBranch && children.length > 0 && (
+                <ul className="mt-3 flex flex-col gap-y-2.5 border-l border-paper-200 pl-3">
+                  {children.map((child) => (
+                    <li key={child.id}>
+                      <LocalizedClientLink
+                        href={`/categories/${child.handle}`}
+                        className={clx(
+                          "text-sm transition-colors",
+                          child.handle === currentHandle
+                            ? "font-semibold text-ink"
+                            : "text-ink-500 hover:text-ink"
+                        )}
+                      >
+                        {child.name}
+                      </LocalizedClientLink>
+                    </li>
+                  ))}
+                </ul>
+              )}
             </li>
           )
         })}

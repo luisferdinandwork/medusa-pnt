@@ -3,6 +3,8 @@ import { Radio, RadioGroup } from "@headlessui/react"
 import { setShippingMethod } from "@lib/data/cart"
 import { calculatePriceForShippingOption } from "@lib/data/fulfillment"
 import { convertToLocale } from "@lib/util/money"
+import { LINE_ITEM_LOCATION_KEYS, lineFulfillment } from "@lib/util/omnichannel"
+import LocalizedClientLink from "@modules/common/components/localized-client-link"
 import { CheckCircleSolid, Loader } from "@medusajs/icons"
 import { HttpTypes } from "@medusajs/types"
 import ErrorMessage from "@modules/checkout/components/error-message"
@@ -19,6 +21,18 @@ type ShippingProps = {
   cart: HttpTypes.StoreCart
   availableShippingMethods: HttpTypes.StoreCartShippingOption[] | null
 }
+
+type OptionWithLocation = {
+  service_zone?: {
+    fulfillment_set?: {
+      type?: string
+      location?: { id?: string; address: HttpTypes.StoreCartAddress }
+    }
+  }
+}
+
+const optionSet = (option: HttpTypes.StoreCartShippingOption) =>
+  (option as unknown as OptionWithLocation).service_zone?.fulfillment_set
 
 function formatAddress(address: HttpTypes.StoreCartAddress) {
   if (!address) {
@@ -69,13 +83,32 @@ const Shipping: React.FC<ShippingProps> = ({
 
   const isOpen = searchParams.get("step") === "delivery"
 
-  const _shippingMethods = availableShippingMethods?.filter(
-    (sm) => (sm as unknown as { service_zone?: { fulfillment_set?: { type?: string; location?: { address: HttpTypes.StoreCartAddress } } } }).service_zone?.fulfillment_set?.type !== "pickup"
-  )
+  // The bag decides how it is received (omnichannel, chosen in the cart):
+  // a pickup bag only sees its store's pickup option, a delivered bag only
+  // the delivery options. Carts without that choice see everything.
+  const items = cart.items ?? []
+  const pickupLine = items.find((item) => lineFulfillment(item.metadata) === "pickup")
+  const pickupStoreId = pickupLine?.metadata?.[LINE_ITEM_LOCATION_KEYS.id] as
+    | string
+    | undefined
+  const pickupStoreName = pickupLine?.metadata?.[LINE_ITEM_LOCATION_KEYS.name] as
+    | string
+    | undefined
+  const deliveredBag =
+    !pickupLine &&
+    items.some((item) => typeof item.metadata?.[LINE_ITEM_LOCATION_KEYS.id] === "string")
 
-  const _pickupMethods = availableShippingMethods?.filter(
-    (sm) => (sm as unknown as { service_zone?: { fulfillment_set?: { type?: string; location?: { address: HttpTypes.StoreCartAddress } } } }).service_zone?.fulfillment_set?.type === "pickup"
-  )
+  const _shippingMethods = pickupStoreId
+    ? []
+    : availableShippingMethods?.filter((sm) => optionSet(sm)?.type !== "pickup")
+
+  const _pickupMethods = deliveredBag
+    ? []
+    : availableShippingMethods?.filter(
+        (sm) =>
+          optionSet(sm)?.type === "pickup" &&
+          (!pickupStoreId || optionSet(sm)?.location?.id === pickupStoreId)
+      )
 
   const hasPickupOptions = !!_pickupMethods?.length
 
@@ -151,6 +184,13 @@ const Shipping: React.FC<ShippingProps> = ({
     setError(null)
   }, [isOpen])
 
+  const storePickupOption = pickupStoreId ? _pickupMethods?.[0] : undefined
+  useEffect(() => {
+    if (isOpen && storePickupOption && shippingMethodId !== storePickupOption.id) {
+      handleSetShippingMethod(storePickupOption.id, "pickup")
+    }
+  }, [isOpen, storePickupOption?.id])
+
   return (
     <div className="">
       <div className="flex flex-row items-center justify-between mb-6">
@@ -192,7 +232,14 @@ const Shipping: React.FC<ShippingProps> = ({
                 Metode pengiriman
               </span>
               <span className="mb-4 text-ui-fg-muted txt-medium">
-                Bagaimana pesananmu ingin dikirim
+                {pickupStoreId
+                  ? `Pesananmu diambil di ${pickupStoreName ?? "toko"}. `
+                  : "Bagaimana pesananmu ingin dikirim"}
+                {(pickupStoreId || deliveredBag) && (
+                  <LocalizedClientLink href="/cart" className="underline">
+                    {pickupStoreId ? "Ubah di tas belanja" : "Mau ambil di toko? Atur di tas belanja"}
+                  </LocalizedClientLink>
+                )}
               </span>
             </div>
             <div data-testid="delivery-options-container">
@@ -345,7 +392,7 @@ const Shipping: React.FC<ShippingProps> = ({
                               </span>
                               <span className="text-base-regular text-ui-fg-muted">
                                 {formatAddress(
-                                  (option as unknown as { service_zone?: { fulfillment_set?: { location?: { address: HttpTypes.StoreCartAddress } } } }).service_zone?.fulfillment_set?.location
+                                  optionSet(option)?.location
                                     ?.address as HttpTypes.StoreCartAddress
                                 )}
                               </span>

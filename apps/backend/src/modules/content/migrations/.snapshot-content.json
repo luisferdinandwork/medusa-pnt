@@ -704,8 +704,8 @@
           "enumItems": [],
           "mappedType": "text"
         },
-        "silo": {
-          "name": "silo",
+        "product_name": {
+          "name": "product_name",
           "type": "text",
           "unsigned": false,
           "autoincrement": false,

@@ -5,7 +5,12 @@ import { getCacheOptions } from "./cookies"
 
 export type Faq = { question: string; answer: string }
 export type Source = { label: string; url: string }
-export type StorySection = { heading: string; body: string }
+export type StorySection = {
+  heading: string
+  body: string
+  image_url?: string | null
+  image_alt?: string | null
+}
 export type StoryHighlight = { label: string; value: string }
 
 export type Article = {
@@ -48,7 +53,7 @@ export type ProductStory = {
   title: string
   subtitle: string | null
   excerpt: string | null
-  silo: string
+  product_name: string
   category_handle: string | null
   product_handles: string[] | null
   intro: string | null
@@ -140,7 +145,7 @@ export const getProductStory = async (
   }
 }
 
-/** The story whose silo contains this product, used on product pages. */
+/** The story that lists this product, used on product pages. */
 export const getStoryForProduct = async (
   productHandle: string
 ): Promise<ProductStory | null> => {

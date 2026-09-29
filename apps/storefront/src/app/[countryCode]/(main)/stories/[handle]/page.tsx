@@ -74,7 +74,7 @@ export default async function ProductStoryPage(props: PageProps) {
           }),
           breadcrumbSchema([
             { name: "Beranda", url: baseUrl },
-            { name: "Cerita Produk", url: `${baseUrl}/stories` },
+            { name: "Product Stories", url: `${baseUrl}/stories` },
             { name: story.title, url },
           ]),
           ...(story.faqs?.length ? [faqSchema(story.faqs)] : []),
@@ -86,13 +86,13 @@ export default async function ProductStoryPage(props: PageProps) {
           <Breadcrumbs
             items={[
               { label: "Beranda", href: "/" },
-              { label: "Cerita Produk", href: "/stories" },
+              { label: "Product Stories", href: "/stories" },
               { label: story.title },
             ]}
           />
           <div className="flex flex-col gap-y-4 max-w-3xl">
             <span className="text-xs font-semibold uppercase tracking-widest text-red-400">
-              Silo &middot; {story.silo}
+              Product Story &middot; {story.product_name}
             </span>
             <h1 className="font-display uppercase text-4xl small:text-6xl leading-[0.92]">
               {story.title}
@@ -104,7 +104,7 @@ export default async function ProductStoryPage(props: PageProps) {
             )}
           </div>
           <div className="flex flex-wrap items-center gap-x-6 gap-y-2 text-xs uppercase tracking-widest text-white/50">
-            <span>{story.product_handles?.length ?? 0} produk dalam silo</span>
+            <span>{story.product_handles?.length ?? 0} model produk</span>
             {story.category_handle && (
               <LocalizedClientLink
                 href={`/categories/${story.category_handle}`}
@@ -116,6 +116,17 @@ export default async function ProductStoryPage(props: PageProps) {
           </div>
         </div>
       </div>
+
+      {story.cover_image_url && (
+        <div className="content-container pt-12 small:pt-16">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={story.cover_image_url}
+            alt={story.cover_image_alt ?? ""}
+            className="aspect-[21/9] w-full rounded-large object-cover"
+          />
+        </div>
+      )}
 
       <div className="content-container py-12 small:py-16">
         <div className="grid grid-cols-1 small:grid-cols-[minmax(0,1fr)_320px] gap-10 small:gap-16 items-start">
@@ -129,6 +140,15 @@ export default async function ProductStoryPage(props: PageProps) {
                 <h2 className="font-display uppercase text-2xl small:text-3xl">
                   {section.heading}
                 </h2>
+                {section.image_url && (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    src={section.image_url}
+                    alt={section.image_alt ?? ""}
+                    loading="lazy"
+                    className="w-full rounded-large object-cover"
+                  />
+                )}
                 <Markdown content={section.body} />
               </section>
             ))}
@@ -150,7 +170,7 @@ export default async function ProductStoryPage(props: PageProps) {
               href="/blog"
               className="rounded-full border border-paper-200 px-6 py-3 text-center text-xs font-semibold uppercase tracking-wide text-ink-500 hover:border-ink hover:text-ink transition-colors"
             >
-              Baca jurnal
+              Baca artikel
             </LocalizedClientLink>
           </aside>
         </div>
@@ -161,8 +181,8 @@ export default async function ProductStoryPage(props: PageProps) {
           <LinkedProducts
             handles={story.product_handles}
             countryCode={countryCode}
-            eyebrow={story.silo}
-            title="Produk dalam silo ini"
+            eyebrow={story.product_name}
+            title="Model dalam cerita ini"
           />
         </div>
       </div>
@@ -170,7 +190,9 @@ export default async function ProductStoryPage(props: PageProps) {
       {related.length > 0 && (
         <div className="bg-paper-100 border-t border-paper-200">
           <div className="content-container py-16 small:py-20 flex flex-col gap-y-8">
-            <h2 className="font-display uppercase text-3xl">Silo lainnya</h2>
+            <h2 className="font-display uppercase text-3xl">
+              More Product Stories
+            </h2>
             <div className="grid grid-cols-1 xsmall:grid-cols-2 medium:grid-cols-3 gap-6">
               {related.map((entry) => (
                 <StoryCard key={entry.id} story={entry} />

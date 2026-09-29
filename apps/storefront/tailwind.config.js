@@ -38,6 +38,8 @@ module.exports = {
           700: "#2B2622",
           500: "#4A443E",
         },
+        // Backdrop of the SPECS product photos, so they sit on it seamlessly.
+        photo: "#EFEFF1",
         paper: {
           DEFAULT: "#F5F3EE",
           100: "#EDEAE2",

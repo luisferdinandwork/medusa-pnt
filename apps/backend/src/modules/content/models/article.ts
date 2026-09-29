@@ -49,7 +49,7 @@ const Article = model.define("article", {
   geo_locale: model.text().nullable(),
   geo_target_area: model.text().nullable(),
 
-  // Silo interlinking: the products and categories this article points at.
+  // Internal links: the products and categories this article points at.
   related_product_handles: model.json<string[]>().nullable(),
   related_category_handles: model.json<string[]>().nullable(),
 })

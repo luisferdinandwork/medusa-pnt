@@ -25,6 +25,9 @@ const Storefront = model.define("storefront", {
   editorial_heading: model.text().nullable(),
   editorial_body: model.text().nullable(),
   editorial_cta_label: model.text().nullable(),
+  // Photo next to the story (File Module URL). Empty shows a plain panel.
+  editorial_image_url: model.text().nullable(),
+  editorial_image_alt: model.text().nullable(),
   // Array<{ eyebrow: string; title: string; description: string }>, up to 4 cards.
   // Empty/missing hides the guide teaser section.
   guide_cards: model.json().nullable(),

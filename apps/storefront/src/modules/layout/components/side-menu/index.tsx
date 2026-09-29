@@ -10,22 +10,30 @@ import { Fragment } from "react"
 import CountrySelect from "../country-select"
 import LanguageSelect from "../language-select"
 import { Locale } from "@lib/data/locales"
+import type { MenuCategory } from "@lib/util/category-tree"
 
 
 const SideMenuItems = {
   Beranda: "/",
   Belanja: "/store",
-  Cerita: "/stories",
-  Jurnal: "/blog",
   Akun: "/account",
   Tas: "/cart",
 }
+
+// Editorial pages are kept out of the header bar; they are reached from here
+// and from the footer.
+const EditorialItems = [
+  { name: "Articles", href: "/blog", testId: "articles-link" },
+  { name: "Product Stories", href: "/stories", testId: "product-stories-link" },
+]
 
 type SideMenuProps = {
   storeName: string
   regions: HttpTypes.StoreRegion[] | null
   locales: Locale[] | null
   currentLocale: string | null
+  /** Main categories with their subcategories (same as the header menu). */
+  categories: MenuCategory[]
 }
 
 const SideMenu = ({
@@ -33,6 +41,7 @@ const SideMenu = ({
   locales,
   currentLocale,
   storeName,
+  categories,
 }: SideMenuProps) => {
   const countryToggleState = useToggleState()
   const languageToggleState = useToggleState()
@@ -80,22 +89,97 @@ const SideMenu = ({
                         <XMark />
                       </button>
                     </div>
-                    <ul className="flex flex-col gap-6 items-start justify-start">
-                      {Object.entries(SideMenuItems).map(([name, href]) => {
-                        return (
-                          <li key={name}>
-                            <LocalizedClientLink
-                              href={href}
-                              className="font-display uppercase text-3xl leading-10 hover:text-red-400"
-                              onClick={close}
-                              data-testid={`${name.toLowerCase()}-link`}
-                            >
-                              {name}
-                            </LocalizedClientLink>
-                          </li>
-                        )
-                      })}
-                    </ul>
+                    <div className="no-scrollbar flex flex-col gap-y-10 overflow-y-auto">
+                      {categories.length > 0 && (
+                        <div className="flex flex-col gap-y-4">
+                          <span className="text-xs font-semibold uppercase tracking-widest text-white/50">
+                            Kategori
+                          </span>
+                          <ul className="flex flex-col">
+                            {categories.map((category) => (
+                              <li key={category.id} className="border-b border-white/10">
+                                <details className="group/cat">
+                                  <summary className="flex cursor-pointer list-none items-center justify-between py-3 font-display text-2xl uppercase hover:text-red-400 [&::-webkit-details-marker]:hidden">
+                                    {category.name}
+                                    <ArrowRightMini className="transition-transform duration-200 group-open/cat:rotate-90" />
+                                  </summary>
+                                  <ul className="grid grid-cols-2 gap-2 pb-4">
+                                    {category.children.map((child) => (
+                                      <li key={child.id}>
+                                        <LocalizedClientLink
+                                          href={`/categories/${child.handle}`}
+                                          onClick={close}
+                                          className="flex items-center gap-x-2 rounded-rounded bg-white/5 p-2 text-sm hover:bg-white/10"
+                                        >
+                                          {child.image && (
+                                            <span className="h-10 w-10 shrink-0 overflow-hidden rounded bg-photo">
+                                              {/* eslint-disable-next-line @next/next/no-img-element */}
+                                              <img
+                                                src={child.image}
+                                                alt=""
+                                                loading="lazy"
+                                                className="h-full w-full object-contain mix-blend-darken"
+                                              />
+                                            </span>
+                                          )}
+                                          <span className="leading-tight">{child.name}</span>
+                                        </LocalizedClientLink>
+                                      </li>
+                                    ))}
+                                    <li className="col-span-2">
+                                      <LocalizedClientLink
+                                        href={`/categories/${category.handle}`}
+                                        onClick={close}
+                                        className="inline-flex items-center gap-x-1 text-xs font-semibold uppercase tracking-widest text-white/70 hover:text-red-400"
+                                      >
+                                        Lihat semua {category.name}
+                                        <ArrowRightMini />
+                                      </LocalizedClientLink>
+                                    </li>
+                                  </ul>
+                                </details>
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      )}
+                      <ul className="flex flex-col gap-6 items-start justify-start">
+                        {Object.entries(SideMenuItems).map(([name, href]) => {
+                          return (
+                            <li key={name}>
+                              <LocalizedClientLink
+                                href={href}
+                                className="font-display uppercase text-3xl leading-10 hover:text-red-400"
+                                onClick={close}
+                                data-testid={`${name.toLowerCase()}-link`}
+                              >
+                                {name}
+                              </LocalizedClientLink>
+                            </li>
+                          )
+                        })}
+                      </ul>
+                      <div className="flex flex-col gap-y-4 border-t border-white/15 pt-6">
+                        <span className="text-xs font-semibold uppercase tracking-widest text-white/50">
+                          Editorial
+                        </span>
+                        <ul className="flex flex-col gap-y-3 items-start">
+                          {EditorialItems.map((item) => (
+                            <li key={item.href}>
+                              <LocalizedClientLink
+                                href={item.href}
+                                className="group flex items-center gap-x-2 font-display uppercase text-xl hover:text-red-400"
+                                onClick={close}
+                                data-testid={item.testId}
+                              >
+                                {item.name}
+                                <ArrowRightMini className="transition-transform group-hover:translate-x-1" />
+                              </LocalizedClientLink>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    </div>
                     <div className="flex flex-col gap-y-6">
                       {!!locales?.length && (
                         <div

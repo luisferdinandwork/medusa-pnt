@@ -257,9 +257,10 @@ const StorefrontDrawer = ({
             <Textarea value={form.announcement} onChange={set("announcement")} rows={4} />
           </Field>
 
-          <Heading level="h3">Homepage hero</Heading>
+          <Heading level="h3">Homepage hero (text fallback)</Heading>
           <Text size="small" className="text-ui-fg-subtle -mt-4">
-            Leave the heading empty to hide the hero section.
+            Shown only while the storefront has no live hero slides under Storefronts &gt; Banners.
+            Leave the heading empty to hide it.
           </Text>
           <Field label="Eyebrow">
             <Input value={form.hero_eyebrow} onChange={set("hero_eyebrow")} />
@@ -382,6 +383,7 @@ const StorefrontsPage = () => {
   )
 }
 
+// Parent of the storefront design pages (Homepage) in the sidebar.
 export const config = defineRouteConfig({
   label: "Storefronts",
   icon: BuildingStorefront,

@@ -17,6 +17,8 @@ export const STOREFRONT_FIELDS = [
   "editorial_heading",
   "editorial_body",
   "editorial_cta_label",
+  "editorial_image_url",
+  "editorial_image_alt",
   "guide_cards",
 ] as const
 
@@ -45,6 +47,8 @@ export type StorefrontData = {
   editorial_heading?: string | null
   editorial_body?: string | null
   editorial_cta_label?: string | null
+  editorial_image_url?: string | null
+  editorial_image_alt?: string | null
   guide_cards?: GuideCard[] | null
 }
 
