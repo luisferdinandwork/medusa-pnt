@@ -1,7 +1,8 @@
 "use client"
 
-import { isManual, isStripeLike } from "@lib/constants"
+import { isGatewayProvider, isManual, isStripeLike } from "@lib/constants"
 import { placeOrder } from "@lib/data/cart"
+import { startGatewayPayment } from "@lib/data/payment-gateway"
 import { HttpTypes } from "@medusajs/types"
 import { Button } from "@modules/common/components/ui"
 import { useElements, useStripe } from "@stripe/react-stripe-js"
@@ -28,6 +29,8 @@ const PaymentButton: React.FC<PaymentButtonProps> = ({
   const paymentSession = cart.payment_collection?.payment_sessions?.[0]
 
   switch (true) {
+    case isGatewayProvider(paymentSession?.provider_id):
+      return <GatewayPaymentButton notReady={notReady} />
     case isStripeLike(paymentSession?.provider_id):
       return (
         <StripePaymentButton
@@ -151,6 +154,46 @@ const StripePaymentButton = ({
       <ErrorMessage
         error={errorMessage}
         data-testid="stripe-payment-error-message"
+      />
+    </>
+  )
+}
+
+// Midtrans / DOKU: pay on the gateway's page. The order is placed when the
+// shopper comes back (or when the gateway notifies the backend).
+const GatewayPaymentButton = ({ notReady }: { notReady: boolean }) => {
+  const [submitting, setSubmitting] = useState(false)
+  const [errorMessage, setErrorMessage] = useState<string | null>(null)
+
+  const handlePayment = async () => {
+    setSubmitting(true)
+    setErrorMessage(null)
+    const { url, error } = await startGatewayPayment().catch((err) => ({
+      url: undefined,
+      error: err instanceof Error ? err.message : String(err),
+    }))
+    if (url) {
+      window.location.assign(url)
+      return
+    }
+    setErrorMessage(error ?? "Halaman pembayaran tidak bisa dibuka.")
+    setSubmitting(false)
+  }
+
+  return (
+    <>
+      <Button
+        disabled={notReady}
+        isLoading={submitting}
+        onClick={handlePayment}
+        size="large"
+        data-testid="submit-order-button"
+      >
+        Bayar Sekarang
+      </Button>
+      <ErrorMessage
+        error={errorMessage}
+        data-testid="gateway-payment-error-message"
       />
     </>
   )

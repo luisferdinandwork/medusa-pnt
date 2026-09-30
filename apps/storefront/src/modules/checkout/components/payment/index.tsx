@@ -1,10 +1,12 @@
 "use client"
 import { RadioGroup } from "@headlessui/react"
-import { isStripeLike, paymentInfoMap } from "@lib/constants"
+import { isGatewayProvider, isStripeLike, paymentInfoMap } from "@lib/constants"
 import { initiatePaymentSession } from "@lib/data/cart"
+import type { StorePaymentGateway } from "@lib/data/payment"
 import { CheckCircleSolid, CreditCard } from "@medusajs/icons"
 import ErrorMessage from "@modules/checkout/components/error-message"
 import PaymentContainer, {
+  GatewayPaymentContainer,
   StripePaymentContainer,
 } from "@modules/checkout/components/payment-container"
 import Divider from "@modules/common/components/divider"
@@ -16,32 +18,56 @@ import {
   clx,
 } from "@modules/common/components/ui"
 import { HttpTypes } from "@medusajs/types"
-import { usePathname, useRouter, useSearchParams } from "next/navigation"
+import { useParams, usePathname, useRouter, useSearchParams } from "next/navigation"
 import { useCallback, useEffect, useState } from "react"
+
+// Where the gateway returns to: checks the payment and places the order.
+const gatewayReturnUrl = (cartId: string, countryCode: string) =>
+  `${window.location.origin}/api/payment-gateway/return?${new URLSearchParams({
+    cart_id: cartId,
+    country_code: countryCode,
+  })}`
 
 const Payment = ({
   cart,
   availablePaymentMethods,
+  paymentGateways = [],
 }: {
   cart: HttpTypes.StoreCart
   availablePaymentMethods: { id: string }[]
+  paymentGateways?: StorePaymentGateway[]
 }) => {
   const activeSession = cart.payment_collection?.payment_sessions?.find(
     (paymentSession) => paymentSession.status === "pending"
   )
 
+  // Gateways (Midtrans / DOKU) are listed one by one instead of by provider.
+  // They charge in rupiah only; the backend enables their provider in every
+  // IDR region. (The region's provider list is cached by the storefront, so
+  // it can lag behind a gateway turned on in the admin.)
+  const gateways =
+    cart.currency_code?.toLowerCase() === "idr" ? paymentGateways : []
+  const otherMethods = availablePaymentMethods.filter(
+    (method) => !isGatewayProvider(method.id)
+  )
+  const activeGateway = isGatewayProvider(activeSession?.provider_id)
+    ? gateways.find((gateway) => gateway.id === activeSession?.data?.gateway_id)
+    : undefined
+  const activeOption = activeGateway?.id ?? activeSession?.provider_id ?? ""
+
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [paymentComplete, setPaymentComplete] = useState(false)
-  const [selectedPaymentMethod, setSelectedPaymentMethod] = useState(
-    activeSession?.provider_id ?? ""
-  )
+  const [selectedPaymentMethod, setSelectedPaymentMethod] = useState(activeOption)
+  const selectedGateway = gateways.find((gateway) => gateway.id === selectedPaymentMethod)
 
   const searchParams = useSearchParams()
   const router = useRouter()
   const pathname = usePathname()
+  const { countryCode } = useParams() as { countryCode: string }
 
   const isOpen = searchParams.get("step") === "payment"
+  const gatewayFailed = searchParams.get("payment_status") === "failed"
 
   const setPaymentMethod = async (method: string) => {
     setError(null)
@@ -64,6 +90,7 @@ const Payment = ({
     (name: string, value: string) => {
       const params = new URLSearchParams(searchParams)
       params.set(name, value)
+      params.delete("payment_status")
 
       return params.toString()
     },
@@ -82,13 +109,24 @@ const Payment = ({
       const shouldInputPaymentDetails =
         isStripeLike(selectedPaymentMethod) && !activeSession
 
-      const checkActiveSession =
-        activeSession?.provider_id === selectedPaymentMethod
+      const checkActiveSession = selectedGateway
+        ? activeGateway?.id === selectedGateway.id
+        : activeSession?.provider_id === selectedPaymentMethod
 
       if (!checkActiveSession) {
-        await initiatePaymentSession(cart, {
-          provider_id: selectedPaymentMethod,
-        })
+        await initiatePaymentSession(
+          cart,
+          selectedGateway
+            ? {
+                provider_id: selectedGateway.provider_id,
+                data: {
+                  gateway_id: selectedGateway.id,
+                  return_url: gatewayReturnUrl(cart.id, countryCode),
+                  country_code: countryCode,
+                },
+              }
+            : { provider_id: selectedPaymentMethod }
+        )
       }
 
       if (!shouldInputPaymentDetails) {
@@ -109,6 +147,8 @@ const Payment = ({
   useEffect(() => {
     setError(null)
   }, [isOpen])
+
+  const hasOptions = gateways.length > 0 || otherMethods.length > 0
 
   return (
     <div className="">
@@ -140,13 +180,34 @@ const Payment = ({
       </div>
       <div>
         <div className={isOpen ? "block" : "hidden"}>
-          {!paidByGiftcard && availablePaymentMethods?.length && (
+          {gatewayFailed && (
+            <div
+              className="mb-4 rounded-rounded border border-red-200 bg-red-50 px-4 py-3 text-small-regular text-red-700"
+              data-testid="payment-failed-notice"
+            >
+              Pembayaran belum berhasil, dibatalkan, atau sudah kedaluwarsa.
+              Silakan coba lagi atau pilih metode pembayaran lain.
+            </div>
+          )}
+
+          {!paidByGiftcard && hasOptions && (
             <>
               <RadioGroup
                 value={selectedPaymentMethod}
                 onChange={(value: string) => setPaymentMethod(value)}
               >
-                {availablePaymentMethods.map((paymentMethod) => (
+                {gateways.map((gateway) => (
+                  <div key={gateway.id}>
+                    <GatewayPaymentContainer
+                      gatewayId={gateway.id}
+                      title={gateway.name}
+                      description={gateway.description}
+                      sandbox={gateway.environment === "sandbox"}
+                      selectedPaymentOptionId={selectedPaymentMethod}
+                    />
+                  </div>
+                ))}
+                {otherMethods.map((paymentMethod) => (
                   <div key={paymentMethod.id}>
                     {isStripeLike(paymentMethod.id) ? (
                       <StripePaymentContainer
@@ -216,7 +277,8 @@ const Payment = ({
                   className="txt-medium text-ui-fg-subtle"
                   data-testid="payment-method-summary"
                 >
-                  {paymentInfoMap[activeSession?.provider_id]?.title ||
+                  {activeGateway?.name ||
+                    paymentInfoMap[activeSession?.provider_id]?.title ||
                     activeSession?.provider_id}
                 </Text>
               </div>
@@ -229,11 +291,15 @@ const Payment = ({
                   data-testid="payment-details-summary"
                 >
                   <Container className="flex items-center h-7 w-fit p-2 bg-ui-button-neutral-hover">
-                    {paymentInfoMap[selectedPaymentMethod]?.icon || (
+                    {paymentInfoMap[activeSession.provider_id]?.icon || (
                       <CreditCard />
                     )}
                   </Container>
-                  <Text>Langkah selanjutnya akan muncul</Text>
+                  <Text>
+                    {activeGateway
+                      ? "Bayar di halaman pembayaran berikutnya"
+                      : "Langkah selanjutnya akan muncul"}
+                  </Text>
                 </div>
               </div>
             </div>

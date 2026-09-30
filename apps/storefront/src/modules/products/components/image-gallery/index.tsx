@@ -98,7 +98,7 @@ const DesktopGrid = ({
 
   return (
     <div
-      className={clx("hidden small:grid gap-0.5", single ? "grid-cols-1" : "grid-cols-2")}
+      className={clx("hidden small:grid gap-1", single ? "grid-cols-1" : "grid-cols-2")}
       data-testid="image-grid"
     >
       {images.map((image, index) => {
@@ -114,7 +114,7 @@ const DesktopGrid = ({
             onMouseLeave={() => setHover(null)}
             aria-label={`Lihat ${image.kind === "video" ? "video" : "foto"} ${index + 1} lebih detail`}
             className={clx(
-              "relative w-full overflow-hidden bg-ui-bg-subtle",
+              "relative w-full overflow-hidden border border-paper-200 bg-ui-bg-subtle",
               image.kind === "image" ? "cursor-zoom-in" : "cursor-pointer",
               single ? "aspect-[4/3]" : "aspect-square"
             )}
@@ -410,7 +410,7 @@ const MobileStrip = ({
       <div
         ref={trackRef}
         className={clx(
-          "flex gap-0.5 no-scrollbar [touch-action:manipulation]",
+          "flex gap-1 no-scrollbar [touch-action:manipulation]",
           zoomed === null ? "snap-x snap-mandatory overflow-x-auto" : "overflow-hidden"
         )}
       >
@@ -420,7 +420,7 @@ const MobileStrip = ({
             onPointerDown={onPointerDown}
             onPointerUp={onPointerUp(index)}
             className={clx(
-              "relative aspect-square shrink-0 snap-start overflow-hidden bg-ui-bg-subtle",
+              "relative aspect-square shrink-0 snap-start overflow-hidden border border-paper-200 bg-ui-bg-subtle",
               single ? "w-full" : "w-[88%]"
             )}
             data-testid="image-strip-slide"

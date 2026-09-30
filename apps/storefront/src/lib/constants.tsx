@@ -33,8 +33,38 @@ export const paymentInfoMap: Record<
     title: "Pembayaran (mode uji)",
     icon: <CreditCard />,
   },
+  // Fallbacks: the checkout shows each gateway's own name from the admin.
+  pp_midtrans_midtrans: {
+    title: "Midtrans",
+    icon: <CreditCard />,
+  },
+  pp_doku_doku: {
+    title: "DOKU",
+    icon: <CreditCard />,
+  },
   // Add more payment providers here
 }
+
+/**
+ * Midtrans / DOKU: hosted payment pages configured in the admin under
+ * Storefronts > Payments. Each is offered as its own option (a "gateway"),
+ * and the shopper pays on the gateway's page.
+ */
+export const isGatewayProvider = (providerId?: string) =>
+  !!providerId &&
+  (providerId.startsWith("pp_midtrans_") || providerId.startsWith("pp_doku_"))
+
+/** "bca_va" -> "BCA VA", "VIRTUAL_ACCOUNT_BCA" -> "Virtual Account BCA". */
+export const formatGatewayMethod = (code?: string | null) =>
+  (code ?? "")
+    .split("_")
+    .filter(Boolean)
+    .map((word) =>
+      word.length <= 4 && !/^(bill|card)$/i.test(word)
+        ? word.toUpperCase()
+        : word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()
+    )
+    .join(" ")
 
 // This only checks if it is native stripe or medusa payments for card payments, it ignores the other stripe-based providers
 export const isStripeLike = (providerId?: string) => {

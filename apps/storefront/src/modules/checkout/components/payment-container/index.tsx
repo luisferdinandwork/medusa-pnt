@@ -1,5 +1,6 @@
 import { Radio as RadioGroupOption } from "@headlessui/react"
-import { Text, clx } from "@modules/common/components/ui"
+import { CreditCard } from "@medusajs/icons"
+import { Badge, Text, clx } from "@modules/common/components/ui"
 import React, { useContext, type JSX } from "react"
 
 import Radio from "@modules/common/components/radio"
@@ -63,6 +64,52 @@ const PaymentContainer: React.FC<PaymentContainerProps> = ({
 }
 
 export default PaymentContainer
+
+/** A Midtrans / DOKU gateway: name and description come from the admin. */
+export const GatewayPaymentContainer = ({
+  gatewayId,
+  title,
+  description,
+  sandbox,
+  selectedPaymentOptionId,
+}: {
+  gatewayId: string
+  title: string
+  description?: string | null
+  sandbox: boolean
+  selectedPaymentOptionId: string | null
+}) => (
+  <RadioGroupOption
+    value={gatewayId}
+    className={clx(
+      "flex flex-col gap-y-1 text-small-regular cursor-pointer py-4 border rounded-rounded px-8 mb-2 hover:shadow-borders-interactive-with-active",
+      {
+        "border-ui-border-interactive": selectedPaymentOptionId === gatewayId,
+      }
+    )}
+    data-testid="payment-gateway-option"
+  >
+    <div className="flex items-center justify-between gap-x-4">
+      <div className="flex items-center gap-x-4">
+        <Radio checked={selectedPaymentOptionId === gatewayId} />
+        <Text className="text-base-regular">{title}</Text>
+        {sandbox && (
+          <Badge color="orange" className="hidden small:block">
+            Sandbox
+          </Badge>
+        )}
+      </div>
+      <span className="justify-self-end text-ui-fg-base">
+        <CreditCard />
+      </span>
+    </div>
+    {description && (
+      <Text className="text-small-regular text-ui-fg-subtle pl-8">
+        {description}
+      </Text>
+    )}
+  </RadioGroupOption>
+)
 
 export const StripePaymentContainer = ({
   paymentProviderId,

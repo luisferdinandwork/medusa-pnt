@@ -23,5 +23,21 @@ module.exports = defineConfig({
     {
       resolve: "./src/modules/banner",
     },
+    {
+      resolve: "./src/modules/payment-gateway",
+    },
+    {
+      resolve: "@medusajs/medusa/payment",
+      // The Midtrans and DOKU providers read their keys and settings from the
+      // payment_gateway module (edited in the admin under Storefronts >
+      // Payments), so the payment module needs it in its container.
+      dependencies: ["payment_gateway"],
+      options: {
+        providers: [
+          { resolve: "./src/modules/midtrans-payment", id: "midtrans" },
+          { resolve: "./src/modules/doku-payment", id: "doku" },
+        ],
+      },
+    },
   ],
 })

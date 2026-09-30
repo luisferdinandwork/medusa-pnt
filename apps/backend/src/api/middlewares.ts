@@ -12,6 +12,10 @@ import {
   ReorderBannersSchema,
   UpdateBannerSchema,
 } from "./admin/banners/validators"
+import {
+  CreatePaymentGatewaySchema,
+  UpdatePaymentGatewaySchema,
+} from "./admin/payment-gateways/validators"
 import { UpdateProductPricingSchema } from "./admin/product-pricing/validators"
 import {
   CreateProductStorySchema,
@@ -21,6 +25,7 @@ import {
   CreateStorefrontSchema,
   UpdateStorefrontSchema,
 } from "./admin/storefronts/validators"
+import { assignPaymentGateway } from "./utils/payment-gateways"
 
 export default defineMiddlewares({
   routes: [
@@ -78,6 +83,22 @@ export default defineMiddlewares({
       matcher: "/admin/product-pricing/:id",
       method: "POST",
       middlewares: [validateAndTransformBody(UpdateProductPricingSchema)],
+    },
+    {
+      matcher: "/admin/payment-gateways",
+      method: "POST",
+      middlewares: [validateAndTransformBody(CreatePaymentGatewaySchema)],
+    },
+    {
+      matcher: "/admin/payment-gateways/:id",
+      method: "POST",
+      middlewares: [validateAndTransformBody(UpdatePaymentGatewaySchema)],
+    },
+    // Midtrans / DOKU sessions: only gateways the cart's sales channel offers.
+    {
+      matcher: "/store/payment-collections/:id/payment-sessions",
+      method: "POST",
+      middlewares: [assignPaymentGateway],
     },
   ],
 })
