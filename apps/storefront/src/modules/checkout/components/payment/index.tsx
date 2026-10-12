@@ -3,9 +3,15 @@ import { RadioGroup } from "@headlessui/react"
 import { isGatewayProvider, isStripeLike, paymentInfoMap } from "@lib/constants"
 import { initiatePaymentSession } from "@lib/data/cart"
 import type { StorePaymentGateway } from "@lib/data/payment"
+import {
+  GATEWAY_METHOD_GROUPS,
+  type GatewayOption,
+  buildGatewayOptions,
+} from "@lib/util/gateway-methods"
 import { CheckCircleSolid, CreditCard } from "@medusajs/icons"
 import ErrorMessage from "@modules/checkout/components/error-message"
 import PaymentContainer, {
+  GatewayMethodIcon,
   GatewayPaymentContainer,
   StripePaymentContainer,
 } from "@modules/checkout/components/payment-container"
@@ -41,25 +47,45 @@ const Payment = ({
     (paymentSession) => paymentSession.status === "pending"
   )
 
-  // Gateways (Midtrans / DOKU) are listed one by one instead of by provider.
+  // Gateways (Midtrans / DOKU) are listed by payment method (BCA VA, QRIS...)
+  // instead of by provider; a gateway that allows every method is one option.
   // They charge in rupiah only; the backend enables their provider in every
   // IDR region. (The region's provider list is cached by the storefront, so
   // it can lag behind a gateway turned on in the admin.)
   const gateways =
     cart.currency_code?.toLowerCase() === "idr" ? paymentGateways : []
+  const gatewayOptions = buildGatewayOptions(gateways)
+  const methodGroups = GATEWAY_METHOD_GROUPS.map((group) => ({
+    ...group,
+    options: gatewayOptions.filter((option) => option.group === group.id),
+  })).filter((group) => group.options.length)
+  const ungroupedOptions = gatewayOptions.filter((option) => !option.group)
   const otherMethods = availablePaymentMethods.filter(
     (method) => !isGatewayProvider(method.id)
   )
+
+  const activeSessionData = activeSession?.data as
+    | { gateway_id?: string; selected_method?: string }
+    | undefined
   const activeGateway = isGatewayProvider(activeSession?.provider_id)
-    ? gateways.find((gateway) => gateway.id === activeSession?.data?.gateway_id)
+    ? gateways.find((gateway) => gateway.id === activeSessionData?.gateway_id)
     : undefined
-  const activeOption = activeGateway?.id ?? activeSession?.provider_id ?? ""
+  const activeGatewayOption = activeGateway
+    ? gatewayOptions.find(
+        (option) =>
+          option.gateway.id === activeGateway.id &&
+          option.method === (activeSessionData?.selected_method ?? null)
+      )
+    : undefined
+  const activeOption = activeGatewayOption?.value ?? activeSession?.provider_id ?? ""
 
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [paymentComplete, setPaymentComplete] = useState(false)
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState(activeOption)
-  const selectedGateway = gateways.find((gateway) => gateway.id === selectedPaymentMethod)
+  const selectedGatewayOption = gatewayOptions.find(
+    (option) => option.value === selectedPaymentMethod
+  )
 
   const searchParams = useSearchParams()
   const router = useRouter()
@@ -109,18 +135,22 @@ const Payment = ({
       const shouldInputPaymentDetails =
         isStripeLike(selectedPaymentMethod) && !activeSession
 
-      const checkActiveSession = selectedGateway
-        ? activeGateway?.id === selectedGateway.id
+      const checkActiveSession = selectedGatewayOption
+        ? activeGatewayOption?.value === selectedGatewayOption.value
         : activeSession?.provider_id === selectedPaymentMethod
 
       if (!checkActiveSession) {
         await initiatePaymentSession(
           cart,
-          selectedGateway
+          selectedGatewayOption
             ? {
-                provider_id: selectedGateway.provider_id,
+                provider_id: selectedGatewayOption.gateway.provider_id,
                 data: {
-                  gateway_id: selectedGateway.id,
+                  gateway_id: selectedGatewayOption.gateway.id,
+                  // The gateway's page then opens straight on this method.
+                  ...(selectedGatewayOption.method
+                    ? { selected_method: selectedGatewayOption.method }
+                    : {}),
                   return_url: gatewayReturnUrl(cart.id, countryCode),
                   country_code: countryCode,
                 },
@@ -148,7 +178,19 @@ const Payment = ({
     setError(null)
   }, [isOpen])
 
-  const hasOptions = gateways.length > 0 || otherMethods.length > 0
+  const hasOptions = gatewayOptions.length > 0 || otherMethods.length > 0
+
+  const renderGatewayOption = (option: GatewayOption) => (
+    <GatewayPaymentContainer
+      key={option.value}
+      value={option.value}
+      title={option.title}
+      description={option.description}
+      group={option.group}
+      sandbox={option.gateway.environment === "sandbox"}
+      selectedPaymentOptionId={selectedPaymentMethod}
+    />
+  )
 
   return (
     <div className="">
@@ -196,17 +238,25 @@ const Payment = ({
                 value={selectedPaymentMethod}
                 onChange={(value: string) => setPaymentMethod(value)}
               >
-                {gateways.map((gateway) => (
-                  <div key={gateway.id}>
-                    <GatewayPaymentContainer
-                      gatewayId={gateway.id}
-                      title={gateway.name}
-                      description={gateway.description}
-                      sandbox={gateway.environment === "sandbox"}
-                      selectedPaymentOptionId={selectedPaymentMethod}
-                    />
+                {methodGroups.map((group) => (
+                  <div
+                    key={group.id}
+                    className="mb-4"
+                    data-testid="payment-method-group"
+                  >
+                    <Text className="txt-medium-plus text-ui-fg-base mb-2">
+                      {group.title}
+                    </Text>
+                    {group.options.map(renderGatewayOption)}
                   </div>
                 ))}
+                {methodGroups.length > 0 &&
+                  (ungroupedOptions.length > 0 || otherMethods.length > 0) && (
+                    <Text className="txt-medium-plus text-ui-fg-base mb-2">
+                      Lainnya
+                    </Text>
+                  )}
+                {ungroupedOptions.map(renderGatewayOption)}
                 {otherMethods.map((paymentMethod) => (
                   <div key={paymentMethod.id}>
                     {isStripeLike(paymentMethod.id) ? (
@@ -277,7 +327,8 @@ const Payment = ({
                   className="txt-medium text-ui-fg-subtle"
                   data-testid="payment-method-summary"
                 >
-                  {activeGateway?.name ||
+                  {activeGatewayOption?.title ||
+                    activeGateway?.name ||
                     paymentInfoMap[activeSession?.provider_id]?.title ||
                     activeSession?.provider_id}
                 </Text>
@@ -291,8 +342,10 @@ const Payment = ({
                   data-testid="payment-details-summary"
                 >
                   <Container className="flex items-center h-7 w-fit p-2 bg-ui-button-neutral-hover">
-                    {paymentInfoMap[activeSession.provider_id]?.icon || (
-                      <CreditCard />
+                    {activeGateway ? (
+                      <GatewayMethodIcon group={activeGatewayOption?.group ?? null} />
+                    ) : (
+                      paymentInfoMap[activeSession.provider_id]?.icon || <CreditCard />
                     )}
                   </Container>
                   <Text>

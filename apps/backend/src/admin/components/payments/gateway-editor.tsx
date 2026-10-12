@@ -488,7 +488,7 @@ export const GatewayEditor = ({
 
               <SectionCard
                 title="Payment methods"
-                description="Which methods the payment page shows. Only methods activated for your account in the gateway dashboard can appear."
+                description="Each ticked method is its own option at checkout (e.g. BCA Virtual Account), and the payment page opens straight on it. With every method, checkout shows this gateway as one option and the shopper picks on the payment page. Only tick methods activated for your account in the gateway dashboard."
               >
                 <div className="flex items-center gap-x-2">
                   <Checkbox

@@ -13,6 +13,7 @@ import { getAuthHeaders, getCacheTag, getCartId, removeCartId } from "./cookies"
 
 type GatewaySessionData = {
   gateway_id?: string
+  selected_method?: string
   gateway_name?: string
   return_url?: string
   country_code?: string
@@ -84,6 +85,7 @@ export async function startGatewayPayment(): Promise<{ url?: string; error?: str
           provider_id: session.provider_id,
           data: {
             gateway_id: data.gateway_id,
+            ...(data.selected_method ? { selected_method: data.selected_method } : {}),
             return_url: data.return_url,
             country_code: data.country_code,
           },

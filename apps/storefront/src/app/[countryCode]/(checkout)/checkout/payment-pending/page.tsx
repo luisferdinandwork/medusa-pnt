@@ -1,5 +1,6 @@
-import { formatGatewayMethod, isGatewayProvider } from "@lib/constants"
+import { isGatewayProvider } from "@lib/constants"
 import { retrieveCart } from "@lib/data/cart"
+import { gatewayMethodLabel } from "@lib/util/gateway-methods"
 import { convertToLocale } from "@lib/util/money"
 import PaymentPendingPoller from "@modules/checkout/components/payment-pending-poller"
 import LocalizedClientLink from "@modules/common/components/localized-client-link"
@@ -19,6 +20,7 @@ type GatewaySessionData = {
   redirect_url?: string
   expires_at?: string | null
   payment_method?: string | null
+  selected_method?: string
 }
 
 const formatDeadline = (value: string) =>
@@ -63,6 +65,8 @@ export default async function PaymentPendingPage(props: Props) {
   }
 
   const expired = !!data.expires_at && new Date(data.expires_at).getTime() <= Date.now()
+  // What the shopper paid with, else what they picked at checkout.
+  const method = data.payment_method || data.selected_method
 
   return (
     <div className="content-container flex justify-center py-12 small:py-20">
@@ -85,10 +89,10 @@ export default async function PaymentPendingPage(props: Props) {
           <dd className="text-right font-semibold" data-testid="pending-total">
             {convertToLocale({ amount: cart.total ?? 0, currency_code: cart.currency_code })}
           </dd>
-          {data.payment_method && (
+          {method && (
             <>
               <dt className="text-ui-fg-subtle">Metode</dt>
-              <dd className="text-right">{formatGatewayMethod(data.payment_method)}</dd>
+              <dd className="text-right">{gatewayMethodLabel(method)}</dd>
             </>
           )}
           {data.expires_at && (

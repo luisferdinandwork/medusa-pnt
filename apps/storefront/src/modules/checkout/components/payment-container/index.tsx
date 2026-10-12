@@ -1,5 +1,12 @@
 import { Radio as RadioGroupOption } from "@headlessui/react"
-import { CreditCard } from "@medusajs/icons"
+import type { GatewayMethodGroup } from "@lib/util/gateway-methods"
+import {
+  BuildingStorefront,
+  Buildings,
+  Clock,
+  CreditCard,
+  Phone,
+} from "@medusajs/icons"
 import { Badge, Text, clx } from "@modules/common/components/ui"
 import React, { useContext, type JSX } from "react"
 
@@ -65,33 +72,49 @@ const PaymentContainer: React.FC<PaymentContainerProps> = ({
 
 export default PaymentContainer
 
-/** A Midtrans / DOKU gateway: name and description come from the admin. */
+const GROUP_ICONS: Record<GatewayMethodGroup, JSX.Element> = {
+  va: <Buildings />,
+  ewallet: <Phone />,
+  card: <CreditCard />,
+  retail: <BuildingStorefront />,
+  paylater: <Clock />,
+}
+
+export const GatewayMethodIcon = ({ group }: { group: GatewayMethodGroup | null }) =>
+  (group && GROUP_ICONS[group]) || <CreditCard />
+
+/**
+ * A Midtrans / DOKU option: one payment method (e.g. BCA Virtual Account), or
+ * a whole gateway with its name and description from the admin.
+ */
 export const GatewayPaymentContainer = ({
-  gatewayId,
+  value,
   title,
   description,
+  group,
   sandbox,
   selectedPaymentOptionId,
 }: {
-  gatewayId: string
+  value: string
   title: string
   description?: string | null
+  group: GatewayMethodGroup | null
   sandbox: boolean
   selectedPaymentOptionId: string | null
 }) => (
   <RadioGroupOption
-    value={gatewayId}
+    value={value}
     className={clx(
       "flex flex-col gap-y-1 text-small-regular cursor-pointer py-4 border rounded-rounded px-8 mb-2 hover:shadow-borders-interactive-with-active",
       {
-        "border-ui-border-interactive": selectedPaymentOptionId === gatewayId,
+        "border-ui-border-interactive": selectedPaymentOptionId === value,
       }
     )}
     data-testid="payment-gateway-option"
   >
     <div className="flex items-center justify-between gap-x-4">
       <div className="flex items-center gap-x-4">
-        <Radio checked={selectedPaymentOptionId === gatewayId} />
+        <Radio checked={selectedPaymentOptionId === value} />
         <Text className="text-base-regular">{title}</Text>
         {sandbox && (
           <Badge color="orange" className="hidden small:block">
@@ -100,7 +123,7 @@ export const GatewayPaymentContainer = ({
         )}
       </div>
       <span className="justify-self-end text-ui-fg-base">
-        <CreditCard />
+        <GatewayMethodIcon group={group} />
       </span>
     </div>
     {description && (

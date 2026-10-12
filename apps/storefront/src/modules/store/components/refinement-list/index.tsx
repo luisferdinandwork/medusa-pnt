@@ -31,7 +31,7 @@ const RefinementList = ({
 
   return (
     <aside
-      className="hidden small:block small:w-[260px] small:shrink-0 small:sticky small:top-16 small:max-h-[calc(100vh-4rem)] small:overflow-y-auto small:pr-6 small:pb-8"
+      className="hidden small:block small:w-[260px] small:shrink-0 small:sticky small:top-16 small:max-h-[calc(100vh-4rem)] small:overflow-y-auto small:pr-6 small:pb-8 no-scrollbar"
       data-testid={dataTestId}
     >
       <FilterPanelContent

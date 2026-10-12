@@ -1,11 +1,7 @@
 import { Container, Heading, Text } from "@modules/common/components/ui"
 
-import {
-  formatGatewayMethod,
-  isGatewayProvider,
-  isStripeLike,
-  paymentInfoMap,
-} from "@lib/constants"
+import { isGatewayProvider, isStripeLike, paymentInfoMap } from "@lib/constants"
+import { gatewayMethodLabel } from "@lib/util/gateway-methods"
 import { CreditCard } from "@medusajs/icons"
 import Divider from "@modules/common/components/divider"
 import { convertToLocale } from "@lib/util/money"
@@ -18,10 +14,14 @@ type PaymentDetailsProps = {
 const PaymentDetails = ({ order }: PaymentDetailsProps) => {
   const payment = order.payment_collections?.[0].payments?.[0]
   const info = payment ? paymentInfoMap[payment.provider_id] : undefined
-  // Midtrans / DOKU payments carry the gateway's name and the method used.
+  // Midtrans / DOKU payments carry the gateway's name and the method used
+  // (or, failing that, the one picked at checkout).
   const gatewayData = isGatewayProvider(payment?.provider_id)
-    ? (payment?.data as { gateway_name?: string; payment_method?: string } | undefined)
+    ? (payment?.data as
+        | { gateway_name?: string; payment_method?: string; selected_method?: string }
+        | undefined)
     : undefined
+  const gatewayMethod = gatewayData?.payment_method || gatewayData?.selected_method
 
   return (
     <div>
@@ -39,9 +39,10 @@ const PaymentDetails = ({ order }: PaymentDetailsProps) => {
                 className="txt-medium text-ui-fg-subtle"
                 data-testid="payment-method"
               >
-                {gatewayData?.gateway_name ?? info?.title ?? payment.provider_id}
-                {gatewayData?.payment_method &&
-                  ` · ${formatGatewayMethod(gatewayData.payment_method)}`}
+                {(gatewayMethod && gatewayMethodLabel(gatewayMethod)) ||
+                  gatewayData?.gateway_name ||
+                  info?.title ||
+                  payment.provider_id}
               </Text>
             </div>
             <div className="flex flex-col w-2/3">

@@ -48,13 +48,19 @@ import { readCredentials } from "./credentials"
 
 /**
  * What a gateway payment session carries. The storefront sends `gateway_id`,
- * `return_url` and `country_code`; the store middleware adds `cart_id` and
- * `customer`; the provider adds the rest. Everything here is visible to the
- * shopper, so it never holds a key.
+ * `selected_method`, `return_url` and `country_code`; the store middleware
+ * adds `cart_id` and `customer`; the provider adds the rest. Everything here
+ * is visible to the shopper, so it never holds a key.
  */
 export type GatewaySessionData = {
   session_id?: string
   gateway_id?: string
+  /**
+   * The method the shopper picked at checkout (a gateway method code, e.g.
+   * "bca_va"). The payment page then offers only that method. Unset: every
+   * method the gateway allows.
+   */
+  selected_method?: string
   return_url?: string
   country_code?: string
   cart_id?: string
@@ -202,6 +208,14 @@ export abstract class GatewayPaymentProvider extends AbstractPaymentProvider {
     if (amount <= 0) {
       throw new MedusaError(MedusaError.Types.INVALID_DATA, "Nothing to pay.")
     }
+    const allowedMethods = (gateway.payment_methods as string[] | null) ?? []
+    const selectedMethod = data.selected_method
+    if (selectedMethod && allowedMethods.length && !allowedMethods.includes(selectedMethod)) {
+      throw new MedusaError(
+        MedusaError.Types.NOT_ALLOWED,
+        "Metode pembayaran ini sudah tidak tersedia. Silakan pilih metode lain."
+      )
+    }
 
     const client = gatewayClient(gateway)
     const reference = newReference()
@@ -224,7 +238,8 @@ export abstract class GatewayPaymentProvider extends AbstractPaymentProvider {
         customer: data.customer ?? {},
         returnUrl: data.return_url,
         expiryMinutes: gateway.expiry_minutes,
-        paymentMethods: (gateway.payment_methods as string[] | null) ?? [],
+        // One method: the payment page opens straight on it.
+        paymentMethods: selectedMethod ? [selectedMethod] : allowedMethods,
         notificationUrl: gateway.notification_url,
         itemName: "Total belanja",
       })
@@ -252,6 +267,7 @@ export abstract class GatewayPaymentProvider extends AbstractPaymentProvider {
     return {
       session_id: sessionId,
       gateway_id: gateway.id,
+      ...(selectedMethod ? { selected_method: selectedMethod } : {}),
       return_url: data.return_url,
       country_code: data.country_code,
       cart_id: data.cart_id,

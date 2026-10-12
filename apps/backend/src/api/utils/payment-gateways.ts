@@ -148,7 +148,9 @@ type CartRow = {
  * Midtrans or DOKU session it checks that the gateway is active and offered by
  * the cart's sales channel (picking the first one when the storefront did not
  * name one), checks the return URL, and adds the cart and shopper details the
- * gateway page is filled with. Other providers pass through untouched.
+ * gateway page is filled with. `selected_method` (the method picked at
+ * checkout) is passed on; the provider checks the gateway allows it. Other
+ * providers pass through untouched.
  */
 export const assignPaymentGateway = async (
   req: MedusaRequest,
@@ -222,6 +224,17 @@ export const assignPaymentGateway = async (
       )
     }
 
+    const selectedMethod = input.selected_method ?? undefined
+    if (
+      selectedMethod !== undefined &&
+      (typeof selectedMethod !== "string" || !/^[A-Za-z0-9_]{1,60}$/.test(selectedMethod))
+    ) {
+      throw new MedusaError(
+        MedusaError.Types.INVALID_DATA,
+        "selected_method must be a payment method code of the gateway (e.g. bca_va)."
+      )
+    }
+
     const countryCode =
       typeof input.country_code === "string" && /^[a-z]{2}$/i.test(input.country_code)
         ? input.country_code.toLowerCase()
@@ -230,6 +243,7 @@ export const assignPaymentGateway = async (
 
     body.data = {
       gateway_id: gateway.id,
+      ...(selectedMethod ? { selected_method: selectedMethod } : {}),
       return_url: returnUrl,
       country_code: countryCode,
       cart_id: cart.id,

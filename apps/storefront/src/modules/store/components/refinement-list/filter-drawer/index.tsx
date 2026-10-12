@@ -40,9 +40,6 @@ const FilterDrawer = ({ open, onClose, children }: FilterDrawerProps) => {
           >
             <Dialog.Panel className="flex w-full max-h-[85vh] flex-col rounded-t-large bg-white">
               <div className="flex items-center justify-between border-b border-paper-200 px-5 py-4">
-                <Dialog.Title className="font-display uppercase text-lg">
-                  Filter
-                </Dialog.Title>
                 <button
                   type="button"
                   onClick={onClose}
@@ -52,7 +49,7 @@ const FilterDrawer = ({ open, onClose, children }: FilterDrawerProps) => {
                   <XMark />
                 </button>
               </div>
-              <div className="flex-1 overflow-y-auto px-5 py-2">
+              <div className="flex-1 overflow-y-auto px-5 py-2 no-scrollbar">
                 {children}
               </div>
               <div className="border-t border-paper-200 px-5 py-4">

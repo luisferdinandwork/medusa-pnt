@@ -47,8 +47,8 @@ export const paymentInfoMap: Record<
 
 /**
  * Midtrans / DOKU: hosted payment pages configured in the admin under
- * Storefronts > Payments. Each is offered as its own option (a "gateway"),
- * and the shopper pays on the gateway's page.
+ * Storefronts > Payments. The checkout lists each gateway's payment methods
+ * (lib/util/gateway-methods.ts), and the shopper pays on the gateway's page.
  */
 export const isGatewayProvider = (providerId?: string) =>
   !!providerId &&
